@@ -1,7 +1,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#ifdef CONFIG_FLEXUS
 
 #ifdef DEBUG // temporary, just to make requirements of dummies clear
 #include <assert.h>
@@ -23,8 +22,6 @@ extern "C" {
 #include "sysemu/cpus.h"
 #include "qmp-commands.h"
 #include "include/exec/exec-all.h"
-#define QEMUFLEX_PROTOTYPES
-#define QEMUFLEX_QEMU_INTERNAL
 #include "api.h"
 
 #if !defined(TARGET_I386) && !defined(TARGET_SPARC64) && !defined(TARGET_ARM)
@@ -34,17 +31,15 @@ extern "C" {
 static const int cpu_name_size = 20;
 extern int smp_cpus;
 
-#ifdef CONFIG_SIAVASH
 static int pending_exception = 0;
-#endif
+#ifdef CONFIG_QUANTUM
 extern uint64_t quantum_value;
-
+#endif
 static int simulationTime;
 
+static bool timing;
 
-#ifdef CONFIG_DEBUG_LIBQEMUFLEX
 static int debugStats[ALL_DEBUG_TYPE] = {0};
-#endif
 //Functions I am not sure on(wasn't the last person to work on them)
 //The callback functions
 
@@ -72,8 +67,6 @@ static int debugStats[ALL_DEBUG_TYPE] = {0};
 
 static QEMU_callback_table_t * QEMU_all_callbacks_tables = NULL;
 
-#ifdef CONFIG_SIAVASH
-//SIA
 static conf_object_t **object_table = NULL;
 static unsigned max_table_size = 50; // Just for test.
 static conf_object_t *all_processors = NULL;
@@ -93,10 +86,6 @@ void QEMU_write_phys_memory(conf_object_t *cpu, physical_address_t pa, unsigned 
 	printf("In QEMU, wrtie_phys_memory\n");
 	assert(false);
 }
-
-
-//End SIA
-#endif
 
 int QEMU_clear_exception(void)
 {
@@ -122,7 +111,6 @@ void QEMU_read_register(conf_object_t *cpu, int reg_index, unsigned *reg_size, v
   CPUState * qemucpu = cpu->object;
   return cpu_read_register(qemucpu, reg_index, reg_size, data_out);
 }
-#ifdef CONFIG_SIAVASH
 
 void QEMU_write_register(conf_object_t *cpu, int reg_index, unsigned *reg_size, uint64_t value)
 {
@@ -132,7 +120,7 @@ void QEMU_write_register(conf_object_t *cpu, int reg_index, unsigned *reg_size, 
   cpu_write_register(qemucpu, reg_index, reg_size, value);
   cpu_read_register(qemucpu, reg_index, NULL, &value);
 }
-#endif
+
 uint64_t QEMU_read_register_by_type(conf_object_t *cpu, int reg_index, int reg_type) {
   REQUIRES(cpu->type == QEMU_CPUState);
   CPUState * qemucpu = cpu->object;
@@ -152,13 +140,13 @@ conf_object_t *QEMU_get_phys_memory(conf_object_t *cpu){
     //As far as I can tell it works.
     conf_object_t *as = malloc(sizeof(conf_object_t));
     as->type = QEMU_AddressSpace;
-
-    //SIA
-    char *name = (char *)malloc(sizeof(cpu->name) + sizeof("_mem " ));
-    sprintf(name,"%s_mem",cpu->name);
-    as->name = name;
-    //End SIA
-
+    if (timing){
+        //SIA
+        char *name = (char *)malloc(sizeof(cpu->name) + sizeof("_mem " ));
+        sprintf(name,"%s_mem",cpu->name);
+        as->name = name;
+        //End SIA
+    }
     as->object = (AddressSpace *)cpu_get_address_space_flexus(cpu->object);
     return as;
 }
@@ -179,15 +167,14 @@ conf_object_t *QEMU_get_cpu_by_index(int index)
 	conf_object_t *cpu = malloc(sizeof(conf_object_t));
 	//where will it get deleted?
         cpu->name = (char*)"<placeholder_cpu_name>";  //FIXME: This should be retrieved using a qemu_get_cpu_name(i) function. CPUs should have names, to distinguish CPUs of different machines
-	#ifdef CONFIG_SIAVASH
-	//SIA: Caller should free name of cpu
-	char *name = (char*)malloc(cpu_name_size);
-	sprintf(name, "cpu%d",index);
-
-        cpu->name = name ;  //FIXME: This should be retrieved using a qemu_get_cpu_name(i) function. CPUs should have names, to distinguish CPUs of different machines
-	//SIA
-#endif
-	cpu->object = qemu_get_cpu(index);
+        if (timing){
+            //SIA: Caller should free name of cpu
+            char *name = (char*)malloc(cpu_name_size);
+            sprintf(name, "cpu%d",index);
+            cpu->name = name ;  //FIXME: This should be retrieved using a qemu_get_cpu_name(i) function. CPUs should have names, to distinguish CPUs of different machines
+            //SIA
+        }
+        cpu->object = qemu_get_cpu(index);
 	if(cpu->object){
 		cpu->type = QEMU_CPUState;
 	}
@@ -333,15 +320,14 @@ conf_object_t *QEMU_get_all_processors(int *numCPUs) {
   int i = 0;
   for( i = 0; i < ncpus; i++ ) {
     cpus[i].name = (char*)"<placeholder_cpu_name>";  //FIXME: This should be retrieved using a qemu_get_cpu_name(i) function. CPUs should have names, to distinguish CPUs of different machines
-   
-#ifdef CONFIG_SIAVASH
-    //SIA: Caller should free name of cpu
-    char *name = (char*)malloc(cpu_name_size);
-    sprintf(name, "cpu%d",i);
 
-    cpus[i].name = name ;  //FIXME: This should be retrieved using a qemu_get_cpu_name(i) function. CPUs should have names, to distinguish CPUs of different machines
-    //End SIA
-	#endif
+    if (timing){
+        //SIA: Caller should free name of cpu
+        char *name = (char*)malloc(cpu_name_size);
+        sprintf(name, "cpu%d",i);
+        cpus[i].name = name ;  //FIXME: This should be retrieved using a qemu_get_cpu_name(i) function. CPUs should have names, to distinguish CPUs of different machines
+    }
+
     cpus[i].object = qemu_get_cpu(indexes[i]);
     if(cpus[i].object){//probably not needed error checking
       cpus[i].type = QEMU_CPUState;
@@ -361,6 +347,12 @@ double QEMU_get_tick_frequency(conf_object_t *cpu){
 	return 3.14;
 }
 
+uint32_t QEMU_get_instruction(conf_object_t *cpu, uint64_t* addr)
+{
+    REQUIRES(cpu->type == QEMU_CPUState);
+    CPUState * qemucpu = cpu->object;
+    return cpu_get_instruction(qemucpu, addr);
+}
 
 uint64_t QEMU_get_program_counter(conf_object_t *cpu) 
 {
@@ -376,12 +368,11 @@ uint64_t QEMU_get_program_counter(conf_object_t *cpu)
 	CPUState * qemucpu = cpu->object;
 	return cpu_get_program_counter(qemucpu);
 }
-#ifdef CONFIG_DEBUG_LIBQEMUFLEX
+
 void QEMU_increment_debug_stat(int val)
 {
     debugStats[val]++;
 }
-#endif
 physical_address_t QEMU_logical_to_physical(conf_object_t *cpu, 
 		data_or_instr_t fetch, logical_address_t va) 
 {
@@ -426,36 +417,22 @@ int QEMU_mem_op_is_read(generic_transaction_t *mop)
 	}
 }
 
-//ALEX - Added for timing, dummy for now
-
 instruction_error_t QEMU_instruction_handle_interrupt(conf_object_t *cpu, pseudo_exceptions_t pendingInterrupt) {
 	return QEMU_IE_OK;
 }
  
 int QEMU_get_pending_exception(void) {
-#ifdef CONFIG_SIAVASH
-return pending_exception;
-#else
-  return 0;
-#endif
+    return pending_exception;
 } 
 
 int QEMU_advance(void) {
   printf("QEMU_advance called!\n");
-  //CPUState * cpu_state = cpu->object;
-  //CPUArchState *env = cpu_state->env_ptr;
-  //printf("before calling cpu_exec\n");
-  //return get_info(env);
-
-  printf("Need to advance an instruction properly and return the exception id, if one was raised!\n"); 
-  //ALEX - May need to change function's signature; how do we specify which core to proceed by 1 instr?
+  printf("Need to advance an instruction properly and return the exception id, if one was raised!\n");
   assert(false);
   return 0;
 } 
 
 conf_object_t *QEMU_get_object(const char *name) {
-	//TODO: lookup request object by name and return reference to it
-#ifdef CONFIG_SIAVASH
 	unsigned i;
 	for(i = 0; i < max_table_size; i++){
 		if(object_table[i] == NULL)
@@ -465,40 +442,25 @@ conf_object_t *QEMU_get_object(const char *name) {
 			return object_table[i];
 
 	}
-#else
         printf("QEMU_get_object called!\n"); 
-	assert(false);
-#endif
+        assert(false);
 	return NULL; //dummy
 }
-//ALEX - end
 
-//NOOSHIN: begin --> dummy
 int QEMU_cpu_exec_proc (conf_object_t *cpu) {
   
   int ret;
-  //TODO: call the cpu_exec function and synchronize the exception IDs
-  printf("QEMU_CPU_EXEC_PROC called\n");
   CPUState * cpu_state = cpu->object;
-#ifdef CONFIG_SIAVASH
   pending_exception = cpu_state->exception_index;
-//  resume_qemu_side();
-//  pause_flexus_side();
-  printf("Before Advance\n");
+  fprintf(stderr, "\e[1;35m BEFORE ADVANCE: %s:%d: \e[0m \n", __FILE__, __LINE__);
   advance_qemu();
-  printf("After Advance\n");
-  
-  ret = cpu_state->exception_index;
-#else
-  //CPUArchState *env = cpu_state->env_ptr;
-  printf("before calling cpu_exec\n");
-  ret =  get_info(cpu_state);
-  //assert(false);//Need to handle exceptions
-#endif
-  return ret;
- //return cpu_exec(env); 
+  fprintf(stderr, "\e[1;35m AFTER ADVANCE: %s:%d: \e[0m \n", __FILE__, __LINE__);
+
+  //ret = cpu_state->exception_index;
+  //ret =  get_info(cpu_state);
+
+  return 0;
 }
-//NOOSHIN: end
 
 int flexus_is_simulating = 0;
 
@@ -526,16 +488,16 @@ void QEMU_flush_tb_cache(void) {
   }
 }
 
-#ifdef CONFIG_SIAVASH
 static void QEMU_setup_object_table(void);
-#endif
 
-void QEMU_initialize(void) {
+void QEMU_initialize(bool timing_mode) {
+
+  timing = timing_mode;
+
   QEMU_initialize_counts();
   QEMU_setup_callback_tables();
-#ifdef CONFIG_SIAVASH
-QEMU_setup_object_table(); //SIA
-#endif
+  if (timing_mode)
+    QEMU_setup_object_table();
 }
 
 void QEMU_shutdown(void) {
@@ -589,8 +551,9 @@ int QEMU_is_stopped(void)
 
 
 //[???]Not sure what this does if there is a simulation_break, shouldn't there be a simulation_resume?
-void QEMU_break_simulation(const char * msg)
+bool QEMU_break_simulation(const char * msg)
 {
+    flexus_is_simulating = 0;
     qemu_stopped = 1;
 
     //[???]it could be pause_all_vcpus(void)
@@ -615,7 +578,7 @@ void QEMU_break_simulation(const char * msg)
     //I have not found anything that lets you send a message when you pause the simulation, but there can be a wakeup messsage.
     //in vl.c
 //    int num_cpus = QEMU_get_num_cpus();
-#ifdef CONFIG_DEBUG_LIBQEMUFLEX
+#ifdef CONFIG_DEBUG_LIBQFLEX
     printf ("----------API-OUTPUT----------\n");
 
     printf ("FETCH ops in io space:         %9i\n",debugStats[FETCH_IO_MEM_OP]);
@@ -661,10 +624,9 @@ void QEMU_break_simulation(const char * msg)
 #endif
 
     //possibly in cpus.c vm_stop, which takes in a state variable might not be resumeable
-    return;
+    return true;
 }
-#ifdef CONFIG_SIAVASH
-//SIA
+
 static void QEMU_setup_object_table(void){
 	object_table = (conf_object_t **)malloc(sizeof(conf_object_t *) * max_table_size);
 	unsigned i;
@@ -679,37 +641,24 @@ static void QEMU_setup_object_table(void){
 		object_table[i] = NULL;
 }
 
-//End SIA
-#endif
 uint64_t QEMU_get_instruction_count(int cpu_number, int isUser) {
 
     if (isUser == USER_INSTR ){
-
         return QEMU_instruction_counts_user[cpu_number];
-
-    }
-    else if (isUser == OS_INSTR ){
-
+    } else if (isUser == OS_INSTR ){
         return QEMU_instruction_counts_OS[cpu_number];
-    }
-    else{
-
+    } else {
         return QEMU_instruction_counts[cpu_number];
     }
 }
 
 void QEMU_increment_instruction_count(int cpu_number, int isUser) {
 
-    if(isUser == USER_INSTR)
-    {
+    if(isUser == USER_INSTR){
         QEMU_instruction_counts_user[cpu_number]++;
-    }
-    else
-    {
+    } else {
         QEMU_instruction_counts_OS[cpu_number]++;
-
     }
-
     QEMU_instruction_counts[cpu_number]++;
     QEMU_total_instruction_count++;
 
@@ -922,7 +871,7 @@ static void do_execute_callback(
     break;
     // ncm : conf_object_t, memory_transaction_t
   case QEMU_cpu_mem_trans:
-#ifdef CONFIG_DEBUG_LIBQEMUFLEX
+#ifdef CONFIG_DEBUG_LIBQFLEX
       QEMU_increment_debug_stat(CPUMEMTRANS);
  #endif
       if (!curr->obj)
@@ -957,7 +906,7 @@ static void do_execute_callback(
       }
     break;
   default:
-#ifdef CONFIG_DEBUG_LIBQEMUFLEX
+#ifdef CONFIG_DEBUG_LIBQFLEX
        QEMU_increment_debug_stat(NON_EXISTING_EVENT);
 #endif
        dbg_printf("Event not found...\n");
@@ -977,7 +926,7 @@ void QEMU_execute_callbacks(
 
   // execute specified callbacks
   for (; curr != NULL; curr = curr->next){
-#ifdef CONFIG_DEBUG_LIBQEMUFLEX
+#ifdef CONFIG_DEBUG_LIBQFLEX
       QEMU_increment_debug_stat(ALL_CALLBACKS);
 #endif
       do_execute_callback(curr, event, event_data);
@@ -986,22 +935,20 @@ void QEMU_execute_callbacks(
     // only execudebug_types::te the generic callbacks once
     curr = generic_table->callbacks[event];
     for (; curr != NULL; curr = curr->next){
-#ifdef CONFIG_DEBUG_LIBQEMUFLEX
+#ifdef CONFIG_DEBUG_LIBQFLEX
         QEMU_increment_debug_stat(ALL_GENERIC_CALLBACKS);
 #endif
         do_execute_callback(curr, event, event_data);
     }
   }
 }
-#ifdef CONFIG_QUANTUM
 void QEMU_cpu_set_quantum(const int * val)
 {
+#ifdef CONFIG_QUANTUM
     if (*val > 0)
         quantum_value = *val;
-}
 #endif
-#endif /* CONFIG_FLEXUS */
-
+}
 #ifdef __cplusplus
 }
 #endif
