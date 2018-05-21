@@ -7,7 +7,7 @@
 #define USER_INSTR 1
 #define BOTH_INSTR 2
 
-void advance_qemu(void);
+const char* advance_qemu(void);
 
 
 ///
