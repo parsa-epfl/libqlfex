@@ -65,6 +65,7 @@ SIMULATOR_INIT_PROC simulator_init = NULL;
 SIMULATOR_PREPARE_PROC simulator_prepare = NULL;
 SIMULATOR_DEINIT_PROC simulator_deinit = NULL;
 SIMULATOR_START_PROC simulator_start = NULL;
+SIMULATOR_BIND_QMP_PROC simulator_qmp = NULL;
 
 struct simulator_obj{
   void* handle;
@@ -87,10 +88,22 @@ simulator_obj_t* simulator_load( const char* path ) {
     return NULL;
   }
 
-  simulator_init = (SIMULATOR_INIT_PROC)dlsym( handle, "qemuflex_init" );
+  simulator_init = (SIMULATOR_INIT_PROC)dlsym( handle, "qflex_init" );
   simulator_prepare = (SIMULATOR_PREPARE_PROC)dlsym( handle, "flexInit" );
-  simulator_deinit = (SIMULATOR_DEINIT_PROC)dlsym( handle, "qemuflex_quit" );
+  simulator_deinit = (SIMULATOR_DEINIT_PROC)dlsym( handle, "qflex_quit" );
   simulator_start = (SIMULATOR_START_PROC)dlsym( handle, "startTiming" );
+  simulator_qmp = (SIMULATOR_BIND_QMP_PROC)dlsym( handle, "qmpcall" );
+
+  if (simulator_init    == NULL ||
+      simulator_prepare == NULL ||
+      simulator_deinit  == NULL ||
+      simulator_start   == NULL ||
+      simulator_qmp     == NULL ){
+
+      printf("simulator does not support all of APIs modules! - check you simulator for \"c\" functions wrappers\n");
+      printf("error: %s\n", dlerror() );
+      return NULL;
+  }
 
   return module;
 }
