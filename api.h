@@ -88,12 +88,16 @@ typedef enum {
     SPECIAL,
     FLOATING_POINT,
     EXCEPTION_LINK,
+    CURRENT_EL,
+    SPSR,
+    SPSR_EL,
     STACK_POINTER,
-    SAVED_PROGRAM_STATUS,
     PSTATE,
     SYSTEM,
     FPCR,
     FPSR,
+    NZCV,
+    DAIF,
 } arm_register_t;
 
 typedef enum {

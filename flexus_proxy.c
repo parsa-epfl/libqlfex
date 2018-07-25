@@ -66,7 +66,7 @@ SIMULATOR_PREPARE_PROC simulator_prepare = NULL;
 SIMULATOR_DEINIT_PROC simulator_deinit = NULL;
 SIMULATOR_START_PROC simulator_start = NULL;
 SIMULATOR_BIND_QMP_PROC simulator_qmp = NULL;
-
+SIMULATOR_BIND_CONFIG_PROC simulator_config = NULL;
 struct simulator_obj{
   void* handle;
 };
@@ -93,12 +93,14 @@ simulator_obj_t* simulator_load( const char* path ) {
   simulator_deinit = (SIMULATOR_DEINIT_PROC)dlsym( handle, "qflex_quit" );
   simulator_start = (SIMULATOR_START_PROC)dlsym( handle, "startTiming" );
   simulator_qmp = (SIMULATOR_BIND_QMP_PROC)dlsym( handle, "qmpcall" );
+  simulator_config = (SIMULATOR_BIND_CONFIG_PROC)dlsym( handle, "setConfig" );
 
   if (simulator_init    == NULL ||
       simulator_prepare == NULL ||
       simulator_deinit  == NULL ||
       simulator_start   == NULL ||
-      simulator_qmp     == NULL ){
+      simulator_qmp     == NULL ||
+      simulator_config  == NULL ){
 
       printf("simulator does not support all of APIs modules! - check you simulator for \"c\" functions wrappers\n");
       printf("error: %s\n", dlerror() );

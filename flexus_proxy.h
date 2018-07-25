@@ -23,4 +23,7 @@ extern SIMULATOR_START_PROC simulator_start;
 typedef void (*SIMULATOR_BIND_QMP_PROC)(qmp_flexus_cmd_t, const char*);
 extern SIMULATOR_BIND_QMP_PROC simulator_qmp;
 
+typedef void (*SIMULATOR_BIND_CONFIG_PROC)(const char*);
+extern SIMULATOR_BIND_CONFIG_PROC simulator_config;
+
 #endif /* __LIBQEMUFLEX_FLEXUS_PROXY_HPP__ */
