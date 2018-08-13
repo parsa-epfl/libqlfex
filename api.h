@@ -23,7 +23,7 @@ typedef int exception_type_t;
 // things for api.cpp:
 
 struct conf_object {
-        char *name;
+    char *name;
 	void *object; // pointer to the struct in question
 	enum { // what kind of QEMU struct does it represent
 		QEMU_CPUState, // add new types as necessary
@@ -92,6 +92,7 @@ typedef enum {
     SPSR,
     SPSR_EL,
     STACK_POINTER,
+    SAVED_PROGRAM_STATUS,
     PSTATE,
     SYSTEM,
     FPCR,
@@ -211,6 +212,7 @@ typedef enum {
     ALL_DEBUG_TYPE, // should be last
 
 } debug_types;
+
 //Original definition in /home/parsacom/tools/simics/src/include/simics/core/memory.h
 struct generic_transaction {
         void *cpu_state;// (CPUState*) state of the CPU source of the transaction
