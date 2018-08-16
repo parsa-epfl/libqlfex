@@ -101,7 +101,16 @@ typedef enum {
     FPSR,
     NZCV,
     DAIF,
+    MMU_TCR,
+    MMU_SCTLR,
+    MMU_TTBR0,
+    MMU_TTBR1
 } arm_register_t;
+
+#define EL0 0
+#define EL1 1
+#define EL2 2
+#define EL3 3
 
 typedef enum {
 	QEMU_Set_Ok

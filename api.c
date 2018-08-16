@@ -90,7 +90,24 @@ conf_object_t* QEMU_get_mmu_state(int cpu_index)
 {
     conf_object_t* theCPU = QEMU_get_cpu_by_index(cpu_index);
     conf_object_t* theRegObject = malloc(sizeof(conf_object_t));
-    mmu_regs_t test;
+    theRegObject->type = QEMU_MMUObject;
+    theRegObject->object = (void*) malloc( sizeof(mmu_regs_t) );
+    mmu_regs_t* mmuRegs = (mmu_regs_t*) theRegObject->object;
+    mmuRegs->SCTLR_EL1 = QEMU_read_register_by_type(theCPU,EL1,MMU_SCTLR);
+    mmuRegs->SCTLR_EL2 = QEMU_read_register_by_type(theCPU,EL2,MMU_SCTLR);
+    mmuRegs->SCTLR_EL3 = QEMU_read_register_by_type(theCPU,EL3,MMU_SCTLR);
+    
+    mmuRegs->TCR_EL1 = QEMU_read_register_by_type(theCPU,EL1,MMU_TCR);
+    mmuRegs->TCR_EL2 = QEMU_read_register_by_type(theCPU,EL2,MMU_TCR);
+    mmuRegs->TCR_EL3 = QEMU_read_register_by_type(theCPU,EL3,MMU_TCR);
+
+    mmuRegs->TTBR0_EL1 = QEMU_read_register_by_type(theCPU,EL1,MMU_TTBR0);
+    mmuRegs->TTBR1_EL1 = QEMU_read_register_by_type(theCPU,EL1,MMU_TTBR1);
+    mmuRegs->TTBR0_EL2 = QEMU_read_register_by_type(theCPU,EL2,MMU_TTBR0);
+    mmuRegs->TTBR1_EL2 = QEMU_read_register_by_type(theCPU,EL2,MMU_TTBR1);
+    mmuRegs->TTBR0_EL3 = QEMU_read_register_by_type(theCPU,EL3,MMU_TTBR0);
+
+    return theRegObject;
 }
 
 void QEMU_write_phys_memory(conf_object_t *cpu, physical_address_t pa, unsigned long long value, int bytes){
