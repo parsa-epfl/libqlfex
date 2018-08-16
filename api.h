@@ -28,11 +28,13 @@ struct conf_object {
 	enum { // what kind of QEMU struct does it represent
 		QEMU_CPUState, // add new types as necessary
 		QEMU_AddressSpace,
-		QEMU_NetworkDevice
+		QEMU_NetworkDevice,
+        QEMU_MMUObject
 	} type;
 };
 typedef struct conf_object conf_object_t;
 typedef conf_object_t processor_t;
+typedef conf_object_t mmu_api_obj_t;
 
 typedef enum {
      QMP_FLEXUS_PRINTCYCLECOUNT = 0,
@@ -378,9 +380,10 @@ typedef struct armInterface {
     //uint64_t read_window_register(conf_object_t *cpu, int window, int reg);
     //exception_type_t access_asi_handler(conf_object_t *cpu, v9_memory_transaction_t *mem_op);
 } armInterface_t;
+
+// Interface from libqflex back to the ARM MMU
 typedef struct {
-    //This is the interface for a Sparc mmu in QEMU. The interface should provide the following functions:
-        //exception_type_t (*logical_to_physical)(conf_object_t *mmu_obj, v9_memory_transaction_t *);
+
 } mmu_interface_t;
 
 typedef enum {
@@ -547,6 +550,8 @@ typedef void (*QEMU_FLUSH_TB_CACHE_PROC)(void);
 typedef uint64_t (*QEMU_GET_INSTRUCTION_COUNT_PROC)(int cpu_number, int isUser);
 typedef uint64_t (*QEMU_GET_INSTRUCTION_COUNT_PROC2)(int cpu_number, int isUser);
 
+typedef conf_object_t* (*QEMU_GET_MMU_STATE_PROC)(int cpu_index);
+
 #ifndef CONFIG_FLEXUS
 extern CPU_READ_REGISTER_PROC cpu_read_register;
 extern CPU_WRITE_REGISTER_PROC cpu_write_register;
@@ -619,7 +624,12 @@ extern QEMU_IS_IN_SIMULATION_PROC QEMU_is_in_simulation;
 extern QEMU_TOGGLE_SIMULATION_PROC QEMU_toggle_simulation;
 extern QEMU_FLUSH_TB_CACHE_PROC QEMU_flush_tb_cache;
 extern QEMU_GET_INSTRUCTION_COUNT_PROC QEMU_get_instruction_count;
+extern QEMU_GET_MMU_STATE_PROC QEMU_get_mmu_state;
 #else
+
+// Msutherl: for MMU
+conf_object_t* QEMU_get_mmu_state(int cpu_index);
+
 // query the content/size of a register
 // if reg_size != NULL, write the size of the register (in bytes) in reg_size
 // if data_out != NULL, write the content of the register in data_out
@@ -1031,6 +1041,9 @@ QEMU_INSERT_CALLBACK_PROC QEMU_insert_callback;
 QEMU_DELETE_CALLBACK_PROC QEMU_delete_callback;
 
 QEMU_GET_INSTRUCTION_COUNT_PROC QEMU_get_instruction_count;
+
+// Msutherl: for MMU
+QEMU_GET_MMU_STATE_PROC QEMU_get_mmu_state;
 
 } QFLEX_API_Interface_Hooks_t;
 

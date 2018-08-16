@@ -24,6 +24,8 @@ extern "C" {
 #include "include/exec/exec-all.h"
 #include "api.h"
 
+#include "../flexus/core/qemu/mmuRegisters.h"
+
 #if !defined(TARGET_I386) && !defined(TARGET_SPARC64) && !defined(TARGET_ARM)
 #error "Architecture not supported by QEMUFLEX API!"	
 #endif
@@ -80,6 +82,15 @@ static int QEMU_compare(const char *s1, const char *s2){
 		s2++;
 	}
     	return (*(const unsigned char *)s1 - *(const unsigned char *)(s2));
+}
+
+
+// Read MMU state (just gets a bunch of QEMU registers that are appropriately named)
+conf_object_t* QEMU_get_mmu_state(int cpu_index)
+{
+    conf_object_t* theCPU = QEMU_get_cpu_by_index(cpu_index);
+    conf_object_t* theRegObject = malloc(sizeof(conf_object_t));
+    mmu_regs_t test;
 }
 
 void QEMU_write_phys_memory(conf_object_t *cpu, physical_address_t pa, unsigned long long value, int bytes){

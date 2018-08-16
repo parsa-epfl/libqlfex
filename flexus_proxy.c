@@ -56,6 +56,9 @@ void QFLEX_API_get_interface_hooks(QFLEX_API_Interface_Hooks_t* hooks) {
   hooks->QEMU_get_instruction_count = QEMU_get_instruction_count;
   hooks->QEMU_cpu_exec_proc = QEMU_cpu_exec_proc;
   hooks->QEMU_write_phys_memory= QEMU_write_phys_memory;
+
+  // Msutherl:
+  hooks->QEMU_get_mmu_state = QEMU_get_mmu_state;
 }
 
 #include <stdlib.h>
