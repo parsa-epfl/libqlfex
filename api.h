@@ -560,6 +560,7 @@ typedef uint64_t (*QEMU_GET_INSTRUCTION_COUNT_PROC)(int cpu_number, int isUser);
 typedef uint64_t (*QEMU_GET_INSTRUCTION_COUNT_PROC2)(int cpu_number, int isUser);
 
 typedef conf_object_t* (*QEMU_GET_MMU_STATE_PROC)(int cpu_index);
+typedef uint8_t (*QEMU_GET_CURRENT_EL)(conf_object_t* cpu);
 
 #ifndef CONFIG_FLEXUS
 extern CPU_READ_REGISTER_PROC cpu_read_register;
@@ -634,10 +635,12 @@ extern QEMU_TOGGLE_SIMULATION_PROC QEMU_toggle_simulation;
 extern QEMU_FLUSH_TB_CACHE_PROC QEMU_flush_tb_cache;
 extern QEMU_GET_INSTRUCTION_COUNT_PROC QEMU_get_instruction_count;
 extern QEMU_GET_MMU_STATE_PROC QEMU_get_mmu_state;
+extern QEMU_GET_CURRENT_EL QEMU_get_current_el;
 #else
 
 // Msutherl: for MMU
 conf_object_t* QEMU_get_mmu_state(int cpu_index);
+uint8_t QEMU_get_current_el(conf_object_t* cpu);
 
 // query the content/size of a register
 // if reg_size != NULL, write the size of the register (in bytes) in reg_size
@@ -1053,6 +1056,7 @@ QEMU_GET_INSTRUCTION_COUNT_PROC QEMU_get_instruction_count;
 
 // Msutherl: for MMU
 QEMU_GET_MMU_STATE_PROC QEMU_get_mmu_state;
+QEMU_GET_CURRENT_EL QEMU_get_current_el;
 
 } QFLEX_API_Interface_Hooks_t;
 
