@@ -104,7 +104,8 @@ typedef enum {
     MMU_TCR,
     MMU_SCTLR,
     MMU_TTBR0,
-    MMU_TTBR1
+    MMU_TTBR1,
+    MMU_ID_AA64MMFR0_EL1
 } arm_register_t;
 
 #define EL0 0

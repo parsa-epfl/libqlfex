@@ -86,8 +86,7 @@ static int QEMU_compare(const char *s1, const char *s2){
 
 
 // Read MMU state (just gets a bunch of QEMU registers that are appropriately named)
-conf_object_t* QEMU_get_mmu_state(int cpu_index)
-{
+conf_object_t* QEMU_get_mmu_state(int cpu_index) {
     conf_object_t* theCPU = QEMU_get_cpu_by_index(cpu_index);
     conf_object_t* theRegObject = malloc(sizeof(conf_object_t));
     theRegObject->type = QEMU_MMUObject;
@@ -106,6 +105,7 @@ conf_object_t* QEMU_get_mmu_state(int cpu_index)
     mmuRegs->TTBR0[EL2] = QEMU_read_register_by_type(theCPU,EL2,MMU_TTBR0);
     mmuRegs->TTBR1[EL2] = QEMU_read_register_by_type(theCPU,EL2,MMU_TTBR1);
     mmuRegs->TTBR0[EL3] = QEMU_read_register_by_type(theCPU,EL3,MMU_TTBR0);
+    mmuRegs->ID_AA64MMFR0_EL1 = QEMU_read_register_by_type(theCPU,0,MMU_ID_AA64MMFR0_EL1);
 
     return theRegObject;
 }
