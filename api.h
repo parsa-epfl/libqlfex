@@ -95,8 +95,18 @@ typedef enum {
     FPCR,
     PSTATE,
     EXP_IDX,
+    MMU_TCR,
+    MMU_SCTLR,
+    MMU_TTBR0,
+    MMU_TTBR1,
+    MMU_ID_AA64MMFR0_EL1,
 
 } arm_register_t;
+
+#define EL0 0
+#define EL1 1
+#define EL2 2
+#define EL3 3
 
 typedef enum {
 	QEMU_Set_Ok
@@ -272,16 +282,17 @@ typedef enum {
  *---------------------------------------------------------------*/
 
 typedef struct conf_object {
-    char * name;
-    void * object;
-    enum {
-        QEMU_CPUState,
-        QEMU_AddressSpace,
-        QEMU_NetworkDevice
-    } type;
+    char *name;
+	void *object; // pointer to the struct in question
+	enum { // what kind of QEMU struct does it represent
+		QEMU_CPUState, // add new types as necessary
+		QEMU_AddressSpace,
+		QEMU_NetworkDevice,
+        	QEMU_MMUObject
+	} type;
 }conf_object_t;
-
 typedef conf_object_t processor_t;
+typedef conf_object_t mmu_api_obj_t;
 
 typedef struct generic_transaction {
     void *cpu_state;// (CPUState*) state of the CPU source of the transaction
@@ -446,9 +457,9 @@ typedef struct armInterface {
     //uint64_t read_window_register(conf_object_t *cpu, int window, int reg);
     //exception_type_t access_asi_handler(conf_object_t *cpu, v9_memory_transaction_t *mem_op);
 } armInterface_t;
+
+// Interface from libqflex back to the ARM MMU
 typedef struct {
-    //This is the interface for a Sparc mmu in QEMU. The interface should provide the following functions:
-        //exception_type_t (*logical_to_physical)(conf_object_t *mmu_obj, v9_memory_transaction_t *);
 } mmu_interface_t;
 
 typedef struct arm_memory_transaction {
@@ -549,7 +560,10 @@ typedef conf_object_t*      (*QEMU_GET_ETHERNET_PROC)           (void);
 typedef int                 (*QEMU_CLEAR_EXCEPTION_PROC)        (void);
 typedef instruction_error_t (*QEMU_INSTRUCTION_HANDLE_INTERRUPT_PROC)(conf_object_t *cpu, pseudo_exceptions_t pendingInterrupt);
 typedef int                 (*QEMU_GET_PENDING_EXCEPTION_PROC)  (void);
+typedef uint8_t (*QEMU_GET_CURRENT_EL)(conf_object_t* cpu);
 
+//MMU
+typedef conf_object_t* (*QEMU_GET_MMU_STATE_PROC)(int cpu_index);
 
 //api
 typedef conf_object_t*      (*QEMU_GET_OBJECT_BY_NAME_PROC)     (const char *name);
@@ -666,6 +680,8 @@ void* qemu_cpu_get_address_space                            (void *cs);
 int cpu_proc_num                                            (void *cs);
 const char* advance_qemu                                    (void);
 
+conf_object_t* QEMU_get_mmu_state(int cpu_index);
+uint8_t QEMU_get_current_el(conf_object_t* cpu);
 /*---------------------------------------------------------------
  *-------------------------FLEXUS----------------------------
  *---------------------------------------------------------------*/
@@ -721,6 +737,8 @@ extern QEMU_DISASSEMBLE_PROC QEMU_disassemble;
 extern QEMU_DUMP_STATE_PROC QEMU_dump_state;
 extern QEMU_INSERT_CALLBACK_PROC QEMU_insert_callback;
 extern QEMU_DELETE_CALLBACK_PROC QEMU_delete_callback;
+extern QEMU_GET_MMU_STATE_PROC QEMU_get_mmu_state;
+extern QEMU_GET_CURRENT_EL QEMU_get_current_el;
 #endif
 
 typedef struct QFLEX_API_Interface_Hooks
@@ -791,6 +809,8 @@ typedef struct QFLEX_API_Interface_Hooks
     QEMU_GET_INSTRUCTION_COUNT_PROC QEMU_get_instruction_count;
     QEMU_DISASSEMBLE_PROC QEMU_disassemble;
     QEMU_DUMP_STATE_PROC QEMU_dump_state;
+    QEMU_GET_MMU_STATE_PROC QEMU_get_mmu_state;
+    QEMU_GET_CURRENT_EL QEMU_get_current_el;
 } QFLEX_API_Interface_Hooks_t;
 
 void QFLEX_API_get_Interface_Hooks                          (QFLEX_API_Interface_Hooks_t* hooks);

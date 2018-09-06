@@ -11,6 +11,7 @@ extern "C" {
 #include "include/exec/exec-all.h"
 #include "api.h"
 
+#include "../flexus/core/qemu/mmuRegisters.h"
 
 
 static int pending_exception = 0;
@@ -32,6 +33,30 @@ extern int smp_sockets;
 
 static int flexus_is_simulating;
 
+// Read MMU state (just gets a bunch of QEMU registers that are appropriately named)
+conf_object_t* QEMU_get_mmu_state(int cpu_index) {
+    conf_object_t* theCPU = QEMU_get_cpu_by_index(cpu_index);
+    conf_object_t* theRegObject = malloc(sizeof(conf_object_t));
+    theRegObject->type = QEMU_MMUObject;
+    theRegObject->object = (void*) malloc( sizeof(mmu_regs_t) );
+    mmu_regs_t* mmuRegs = (mmu_regs_t*) theRegObject->object;
+    mmuRegs->SCTLR[EL1] = QEMU_read_register_by_type(theCPU,EL1,MMU_SCTLR);
+    mmuRegs->SCTLR[EL2] = QEMU_read_register_by_type(theCPU,EL2,MMU_SCTLR);
+    mmuRegs->SCTLR[EL3] = QEMU_read_register_by_type(theCPU,EL3,MMU_SCTLR);
+    
+    mmuRegs->TCR[EL1] = QEMU_read_register_by_type(theCPU,EL1,MMU_TCR);
+    mmuRegs->TCR[EL2] = QEMU_read_register_by_type(theCPU,EL2,MMU_TCR);
+    mmuRegs->TCR[EL3] = QEMU_read_register_by_type(theCPU,EL3,MMU_TCR);
+
+    mmuRegs->TTBR0[EL1] = QEMU_read_register_by_type(theCPU,EL1,MMU_TTBR0);
+    mmuRegs->TTBR1[EL1] = QEMU_read_register_by_type(theCPU,EL1,MMU_TTBR1);
+    mmuRegs->TTBR0[EL2] = QEMU_read_register_by_type(theCPU,EL2,MMU_TTBR0);
+    mmuRegs->TTBR1[EL2] = QEMU_read_register_by_type(theCPU,EL2,MMU_TTBR1);
+    mmuRegs->TTBR0[EL3] = QEMU_read_register_by_type(theCPU,EL3,MMU_TTBR0);
+    mmuRegs->ID_AA64MMFR0_EL1 = QEMU_read_register_by_type(theCPU,0,MMU_ID_AA64MMFR0_EL1);
+
+    return theRegObject;
+}
 
 const char* QEMU_dump_state(conf_object_t* cpu) {
     return qemu_dump_state(cpu->object);
@@ -44,6 +69,7 @@ const char* QEMU_disassemble(conf_object_t* cpu, uint64_t pc){
 void QEMU_write_phys_memory(conf_object_t *cpu, physical_address_t pa, unsigned long long value, int bytes){
     assert(false);
 }
+
 int QEMU_clear_exception(void){
     assert(false);
 }
@@ -137,6 +163,13 @@ int QEMU_get_num_threads_per_core(void) {
   return smp_threads;
 }
 
+// return the id of the socket of the processor
+int QEMU_cpu_get_socket_id(conf_object_t *cpu) {
+  int threads_per_core = QEMU_get_num_threads_per_core();
+  int cores_per_socket = QEMU_get_num_cores();
+  int cpu_id = QEMU_get_processor_number(cpu);
+  return cpu_id / (cores_per_socket * threads_per_core);
+}
 
 conf_object_t * QEMU_get_all_cpus(void) {
     if (qemu_objects_initialized)
@@ -390,6 +423,13 @@ conf_object_t *QEMU_get_ethernet(void) {
 //[???]Not sure what this does if there is a simulation_break, shouldn't there be a simulation_resume?
 bool QEMU_break_simulation(const char * msg)
 {
+    flexus_is_simulating = 0;
+    qemu_stopped = 1;
+
+    //[???]it could be pause_all_vcpus(void)
+    //Causes the simulation to pause, can be restarted in qemu monitor by calling stop then cont
+    //or can be restarted by calling resume_all_vcpus();
+    //looking at it some functtions in vl.c might be useful
     printf("Exiting because of break_simulation\n");
     printf("With exit message: %s\n", msg);
 
@@ -398,6 +438,16 @@ bool QEMU_break_simulation(const char * msg)
     qmp_quit(&error_msg);
     error_free(error_msg);
 
+    //qemu_system_suspend();//from vl.c:1940//doesn't work at all
+    //calls pause_all_vcpus(), and some other stuff.
+    //For QEMU to know that they are paused I think.
+    //qemu_system_suspend_request();//might be better from vl.c:1948
+    //sort of works, but then resets cpus I think
+
+
+    //I have not found anything that lets you send a message when you pause the simulation, but there can be a wakeup messsage.
+    //in vl.c
+//    int num_cpus = QEMU_get_num_cpus();
 #ifdef CONFIG_DEBUG_LIBQFLEX
     printf ("----------API-OUTPUT----------\n");
 

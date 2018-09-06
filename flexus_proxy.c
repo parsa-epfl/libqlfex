@@ -52,6 +52,7 @@ void QFLEX_API_get_Interface_Hooks (QFLEX_API_Interface_Hooks_t* hooks) {
   hooks->QEMU_write_phys_memory= QEMU_write_phys_memory;
   hooks->QEMU_disassemble = QEMU_disassemble;
   hooks->QEMU_dump_state = QEMU_dump_state;
+  hooks->QEMU_get_mmu_state = QEMU_get_mmu_state;
 }
 
 #include <stdlib.h>
