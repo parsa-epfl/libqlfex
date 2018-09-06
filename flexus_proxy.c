@@ -4,33 +4,30 @@
 #include <stdio.h>
 #include <errno.h>
 
-void QFLEX_API_get_interface_hooks(QFLEX_API_Interface_Hooks_t* hooks) {
-  hooks->cpu_read_register= cpu_read_register;
-  hooks->cpu_write_register= cpu_write_register;
-  hooks->mmu_logical_to_physical= mmu_logical_to_physical;
-  hooks->cpu_get_program_counter= cpu_get_program_counter;
-  hooks->cpu_get_address_space= cpu_get_address_space_flexus;                      // Changed name here
-  hooks->cpu_proc_num= cpu_proc_num;
-  hooks->cpu_pop_indexes= cpu_pop_indexes;
+void QFLEX_API_get_Interface_Hooks (QFLEX_API_Interface_Hooks_t* hooks) {
   hooks->QEMU_get_phys_memory= QEMU_get_phys_memory;
   hooks->QEMU_get_ethernet= QEMU_get_ethernet;
   hooks->QEMU_clear_exception= QEMU_clear_exception;
   hooks->QEMU_read_register= QEMU_read_register;
+  hooks->QEMU_read_fpcr = QEMU_read_fpcr;
+  hooks->QEMU_read_fpsr = QEMU_read_fpsr;
+
+  hooks->QEMU_read_el = QEMU_read_el;
+  hooks->QEMU_read_pstate = QEMU_read_pstate;
+
+
+
   hooks->QEMU_write_register= QEMU_write_register;
-  hooks->QEMU_read_register_by_type= QEMU_read_register_by_type;
   hooks->QEMU_read_phys_memory= QEMU_read_phys_memory;
   hooks->QEMU_get_phys_mem= QEMU_get_phys_mem;
   hooks->QEMU_get_cpu_by_index= QEMU_get_cpu_by_index;
-  hooks->QEMU_get_processor_number= QEMU_get_processor_number;
+  hooks->QEMU_get_cpu_index= QEMU_get_cpu_index;
   hooks->QEMU_step_count= QEMU_step_count;
   hooks->QEMU_get_num_cpus= QEMU_get_num_cpus;
   hooks->QEMU_get_num_sockets= QEMU_get_num_sockets;
   hooks->QEMU_get_num_cores= QEMU_get_num_cores;
   hooks->QEMU_get_num_threads_per_core= QEMU_get_num_threads_per_core;
-  hooks->QEMU_cpu_get_socket_id= QEMU_cpu_get_socket_id;
-  hooks->QEMU_cpu_get_core_id= QEMU_cpu_get_core_id;
-  hooks->QEMU_cpu_get_thread_id= QEMU_cpu_get_thread_id;
-  hooks->QEMU_get_all_processors= QEMU_get_all_processors;
+  hooks->QEMU_get_all_cpus= QEMU_get_all_cpus;
   hooks->QEMU_cpu_set_quantum= QEMU_cpu_set_quantum;
   hooks->QEMU_set_tick_frequency= QEMU_set_tick_frequency;
   hooks->QEMU_get_tick_frequency= QEMU_get_tick_frequency;
@@ -40,22 +37,21 @@ void QFLEX_API_get_interface_hooks(QFLEX_API_Interface_Hooks_t* hooks) {
   hooks->QEMU_break_simulation= QEMU_break_simulation;
   hooks->QEMU_getSimulationTime=QEMU_getSimulationTime;
   hooks->QEMU_setSimulationTime=QEMU_setSimulationTime;
-  hooks->QEMU_is_stopped=QEMU_is_stopped;
-  hooks->QEMU_flush_all_caches= QEMU_flush_all_caches;
   hooks->QEMU_mem_op_is_data= QEMU_mem_op_is_data;
   hooks->QEMU_mem_op_is_write= QEMU_mem_op_is_write;
   hooks->QEMU_mem_op_is_read= QEMU_mem_op_is_read;
   hooks->QEMU_instruction_handle_interrupt = QEMU_instruction_handle_interrupt;
   hooks->QEMU_get_pending_exception = QEMU_get_pending_exception;
-  hooks->QEMU_advance = QEMU_advance;
-  hooks->QEMU_get_object = QEMU_get_object;
+  hooks->QEMU_get_object_by_name = QEMU_get_object_by_name;
   hooks->QEMU_is_in_simulation = QEMU_is_in_simulation;
   hooks->QEMU_toggle_simulation = QEMU_toggle_simulation;
   hooks->QEMU_insert_callback= QEMU_insert_callback;
   hooks->QEMU_delete_callback= QEMU_delete_callback;
   hooks->QEMU_get_instruction_count = QEMU_get_instruction_count;
-  hooks->QEMU_cpu_exec_proc = QEMU_cpu_exec_proc;
+  hooks->QEMU_cpu_execute = QEMU_cpu_execute;
   hooks->QEMU_write_phys_memory= QEMU_write_phys_memory;
+  hooks->QEMU_disassemble = QEMU_disassemble;
+  hooks->QEMU_dump_state = QEMU_dump_state;
 }
 
 #include <stdlib.h>
