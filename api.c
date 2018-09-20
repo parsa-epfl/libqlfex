@@ -21,6 +21,7 @@ static int debugStats[ALL_DEBUG_TYPE] = {0};
 static QEMU_callback_table_t * QEMU_all_callbacks_tables = NULL;
 static conf_object_t *qemu_cpus = NULL;
 static conf_object_t *qemu_mems = NULL;
+static conf_object_t* qemu_disas_context = NULL;
 static bool qemu_objects_initialized;
 
 #ifdef CONFIG_QUANTUM
@@ -40,20 +41,20 @@ conf_object_t* QEMU_get_mmu_state(int cpu_index) {
     theRegObject->type = QEMU_MMUObject;
     theRegObject->object = (void*) malloc( sizeof(mmu_regs_t) );
     mmu_regs_t* mmuRegs = (mmu_regs_t*) theRegObject->object;
-    mmuRegs->SCTLR[EL1] = QEMU_read_register_by_type(theCPU,EL1,MMU_SCTLR);
-    mmuRegs->SCTLR[EL2] = QEMU_read_register_by_type(theCPU,EL2,MMU_SCTLR);
-    mmuRegs->SCTLR[EL3] = QEMU_read_register_by_type(theCPU,EL3,MMU_SCTLR);
+    mmuRegs->SCTLR[EL1] = cpu_read_register(theCPU,EL1,MMU_SCTLR);
+    mmuRegs->SCTLR[EL2] = cpu_read_register(theCPU,EL2,MMU_SCTLR);
+    mmuRegs->SCTLR[EL3] = cpu_read_register(theCPU,EL3,MMU_SCTLR);
     
-    mmuRegs->TCR[EL1] = QEMU_read_register_by_type(theCPU,EL1,MMU_TCR);
-    mmuRegs->TCR[EL2] = QEMU_read_register_by_type(theCPU,EL2,MMU_TCR);
-    mmuRegs->TCR[EL3] = QEMU_read_register_by_type(theCPU,EL3,MMU_TCR);
+    mmuRegs->TCR[EL1] = cpu_read_register(theCPU,EL1,MMU_TCR);
+    mmuRegs->TCR[EL2] = cpu_read_register(theCPU,EL2,MMU_TCR);
+    mmuRegs->TCR[EL3] = cpu_read_register(theCPU,EL3,MMU_TCR);
 
-    mmuRegs->TTBR0[EL1] = QEMU_read_register_by_type(theCPU,EL1,MMU_TTBR0);
-    mmuRegs->TTBR1[EL1] = QEMU_read_register_by_type(theCPU,EL1,MMU_TTBR1);
-    mmuRegs->TTBR0[EL2] = QEMU_read_register_by_type(theCPU,EL2,MMU_TTBR0);
-    mmuRegs->TTBR1[EL2] = QEMU_read_register_by_type(theCPU,EL2,MMU_TTBR1);
-    mmuRegs->TTBR0[EL3] = QEMU_read_register_by_type(theCPU,EL3,MMU_TTBR0);
-    mmuRegs->ID_AA64MMFR0_EL1 = QEMU_read_register_by_type(theCPU,0,MMU_ID_AA64MMFR0_EL1);
+    mmuRegs->TTBR0[EL1] = cpu_read_register(theCPU,EL1,MMU_TTBR0);
+    mmuRegs->TTBR1[EL1] = cpu_read_register(theCPU,EL1,MMU_TTBR1);
+    mmuRegs->TTBR0[EL2] = cpu_read_register(theCPU,EL2,MMU_TTBR0);
+    mmuRegs->TTBR1[EL2] = cpu_read_register(theCPU,EL2,MMU_TTBR1);
+    mmuRegs->TTBR0[EL3] = cpu_read_register(theCPU,EL3,MMU_TTBR0);
+    mmuRegs->ID_AA64MMFR0_EL1 = cpu_read_register(theCPU,0,MMU_ID_AA64MMFR0_EL1);
 
     return theRegObject;
 }
@@ -92,9 +93,30 @@ uint32_t QEMU_read_pstate(conf_object_t *cpu) {
   return cpu_read_pstate(cpu->object);
 }
 
-int QEMU_read_el(conf_object_t *cpu) {
+uint64_t QEMU_read_hcr_el2(conf_object_t* cpu){
+    assert(cpu->type == QEMU_CPUState);
+    return cpu_read_hcr_el2(cpu);
+}
+
+void QEMU_read_exception(conf_object_t *cpu, exception_t* exp) {
   assert(cpu->type == QEMU_CPUState);
-  return cpu_read_el(cpu->object);
+  cpu_read_exception(cpu->object, exp);
+}
+
+uint32_t QEMU_read_DCZID_EL0(conf_object_t *cpu) {
+  assert(cpu->type == QEMU_CPUState);
+  return cpu_read_DCZID_EL0(cpu->object);
+}
+
+bool QEMU_read_AARCH64(conf_object_t *cpu) {
+  assert(cpu->type == QEMU_CPUState);
+  return cpu_read_AARCH64(cpu->object);
+}
+
+
+uint64_t* QEMU_read_sctlr(conf_object_t *cpu) {
+  assert(cpu->type == QEMU_CPUState);
+  return cpu_read_sctlr(cpu->object);
 }
 
 uint32_t QEMU_read_fpsr(conf_object_t *cpu) {
@@ -120,6 +142,20 @@ uint8_t* QEMU_read_phys_memory(physical_address_t pa, int bytes)
   uint8_t* buf = malloc(sizeof(uint8_t)*bytes);
   cpu_physical_memory_read(pa, buf, bytes);
   return buf;
+}
+
+void set_qemu_disas_context(void* obj){
+    if (qemu_disas_context == NULL)
+        qemu_disas_context = malloc(sizeof(conf_object_t));
+
+    qemu_disas_context->object = obj;
+    qemu_disas_context->type = QEMU_DisasContext;
+    qemu_disas_context->name = strdup("DisasContext");
+}
+
+
+void* get_qemu_disas_context(void){
+    return qemu_disas_context->object;
 }
 
 conf_object_t *QEMU_get_cpu_by_index(int index)
@@ -164,12 +200,12 @@ int QEMU_get_num_threads_per_core(void) {
 }
 
 // return the id of the socket of the processor
-int QEMU_cpu_get_socket_id(conf_object_t *cpu) {
-  int threads_per_core = QEMU_get_num_threads_per_core();
-  int cores_per_socket = QEMU_get_num_cores();
-  int cpu_id = QEMU_get_processor_number(cpu);
-  return cpu_id / (cores_per_socket * threads_per_core);
-}
+//int QEMU_cpu_get_socket_id(conf_object_t *cpu) {
+//  int threads_per_core = QEMU_get_num_threads_per_core();
+//  int cores_per_socket = QEMU_get_num_cores();
+//  int cpu_id = QEMU_get_processor_number(cpu);
+//  return cpu_id / (cores_per_socket * threads_per_core);
+//}
 
 conf_object_t * QEMU_get_all_cpus(void) {
     if (qemu_objects_initialized)

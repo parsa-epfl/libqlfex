@@ -288,11 +288,22 @@ typedef struct conf_object {
 		QEMU_CPUState, // add new types as necessary
 		QEMU_AddressSpace,
 		QEMU_NetworkDevice,
-        	QEMU_MMUObject
+        QEMU_MMUObject,
+        QEMU_DisasContext,
 	} type;
 }conf_object_t;
 typedef conf_object_t processor_t;
 typedef conf_object_t mmu_api_obj_t;
+
+typedef struct exception_t{
+    uint32_t syndrome; /* AArch64 format syndrome register */
+    uint32_t fsr; /* AArch32 format fault status register info */
+    uint64_t vaddress; /* virtual addr associated with exception, if any */
+    uint32_t target_el; /* EL the exception should be targeted for */
+    /* If we implement EL2 we will also need to store information
+     * about the intermediate physical address for stage 2 faults.
+     */
+} exception_t;
 
 typedef struct generic_transaction {
     void *cpu_state;// (CPUState*) state of the CPU source of the transaction
@@ -491,18 +502,24 @@ typedef struct arm_memory_transaction {
 // registers
     //write
 typedef void                (*QEMU_WRITE_REGISTER_PROC)         (conf_object_t *cpu, arm_register_t reg_type, int reg_index, uint64_t value);
-typedef void                (*CPU_WRITE_REGISTER_PROC)          (conf_object_t *cpu, int reg_index, unsigned *reg_size, uint64_t value);
+//typedef void                (*CPU_WRITE_REGISTER_PROC)          (conf_object_t *cpu, int reg_index, unsigned *reg_size, uint64_t value);
 
     //read
 typedef uint64_t            (*QEMU_READ_REGISTER_PROC)          (conf_object_t *cpu, arm_register_t reg_type, int reg_index);
-typedef uint64_t            (*CPU_READ_REGISTER_PROC)           (void *cs_, int reg_idx, int reg_type);
+//typedef uint64_t            (*CPU_READ_REGISTER_PROC)           (void *cs_, int reg_idx, int reg_type);
 
 
 typedef uint32_t            (*QEMU_READ_PSTATE_PROC)             (conf_object_t *cpu);
-typedef int                 (*QEMU_READ_EL_PROC)                 (conf_object_t *cpu);
 typedef uint32_t            (*QEMU_READ_FPCR_PROC)               (conf_object_t *cpu);
 typedef uint32_t            (*QEMU_READ_FPSR_PROC)               (conf_object_t *cpu);
+typedef uint32_t            (*QEMU_READ_FPSR_PROC)               (conf_object_t *cpu);
+typedef uint32_t            (*QEMU_READ_DCZID_EL0)               (conf_object_t *cpu);
+typedef bool                (*QEMU_READ_AARCH64)                 (conf_object_t *cpu);
 
+
+typedef uint64_t*           (*QEMU_READ_SCTLR_PROC)              (conf_object_t *cpu);
+typedef void                (*QEMU_READ_EXCEPTION_PROC)          (conf_object_t *cpu, exception_t* exp);
+typedef uint64_t            (*QEMU_READ_HCR_EL2_PROC)            (conf_object_t* cpu);
 
 //memory
 typedef void*               (*QEMU_CPU_GET_ADDRESS_SPACE_PROC)  (void* cs);
@@ -511,7 +528,7 @@ typedef uint8_t*            (*QEMU_READ_PHYS_MEMORY_PROC)       (physical_addres
 typedef conf_object_t *     (*QEMU_GET_PHYS_MEM_PROC)           (conf_object_t *cpu);
 typedef physical_address_t  (*QEMU_LOGICAL_TO_PHYSICAL_PROC)    (conf_object_t *cpu, data_or_instr_t fetch, logical_address_t va);
 typedef void                (*QEMU_WRITE_PHYS_MEMORY_PROC)      (conf_object_t *cpu, physical_address_t pa, unsigned long long value, int bytes);
-typedef physical_address_t  (*MMU_LOGICAL_TO_PHYSICAL_PROC)     (void *cs, logical_address_t va);
+//typedef physical_address_t  (*MMU_LOGICAL_TO_PHYSICAL_PROC)     (void *cs, logical_address_t va);
 
 //cahe
 typedef int                 (*QEMU_MEM_OP_IS_DATA_PROC)         (generic_transaction_t *mop);
@@ -527,7 +544,7 @@ typedef int                 (*QEMU_GET_NUM_CORES_PROC)          (void);
 typedef int                 (*QEMU_GET_NUM_THREADS_PER_CORE_PROC)(void);
 typedef int                 (*QEMU_CPU_GET_SOCKET_ID_PROC)      (conf_object_t *cpu);
 typedef conf_object_t*      (*QEMU_GET_ALL_CPUS_PROC)           (void);
-typedef int                 (*CPU_PROC_NUM_PROC)                (void* cs);
+//typedef int                 (*CPU_PROC_NUM_PROC)                (void* cs);
 typedef int                 (*QEMU_CPU_EXEC_PROC)               (conf_object_t *cpu);
 
 //qemu settings
@@ -608,10 +625,14 @@ conf_object_t *QEMU_get_phys_memory                         (conf_object_t *cpu)
 int QEMU_clear_exception                                    (void);
 void QEMU_write_register                                    (conf_object_t *cpu, arm_register_t reg_type, int reg_index, uint64_t value);
 uint64_t QEMU_read_register                                 (conf_object_t *cpu, arm_register_t reg_type, int reg_index);
-int QEMU_read_el                                            (conf_object_t *cpu);
+uint64_t* QEMU_read_sctlr                                   (conf_object_t *cpu);
+void QEMU_read_exception                                    (conf_object_t *cpu, exception_t* exp);
 uint32_t QEMU_read_pstate                                   (conf_object_t *cpu);
 uint32_t QEMU_read_fpcr                                     (conf_object_t *cpu);
 uint32_t QEMU_read_fpsr                                     (conf_object_t *cpu);
+uint64_t QEMU_read_hcr_el2                                  (conf_object_t* cpu);
+uint32_t QEMU_read_DCZID_EL0                                (conf_object_t* cpu);
+bool QEMU_read_AARCH64                                      (conf_object_t* cpu);
 
 uint8_t* QEMU_read_phys_memory                              (physical_address_t pa, int bytes);
 void QEMU_write_phys_memory                                 (conf_object_t *cpu, physical_address_t pa, unsigned long long value, int bytes);
@@ -668,9 +689,17 @@ const char* disassemble                                     (void* cpu, uint64_t
 
 uint64_t cpu_read_register                                  ( void *env_ptr, arm_register_t reg_type, int reg_index);
 uint32_t cpu_read_pstate                                    ( void *obj);
-int cpu_read_el                                             ( void *obj);
+void cpu_read_exception                                     ( void *obj, exception_t* exp);
+uint64_t cpu_read_hcr_el2                                   ( void* obj);
+
+
+uint64_t* cpu_read_sctlr                                    ( void *obj);
 uint32_t cpu_read_fpcr                                      ( void *obj);
 uint32_t cpu_read_fpsr                                      ( void *obj);
+uint32_t cpu_read_DCZID_EL0                                 ( void *obj);
+bool cpu_read_AARCH64                                       ( void *obj);
+
+
 
 void cpu_write_register                                     ( void *env_ptr, arm_register_t reg_type, int reg_index, uint64_t value );
 uint64_t cpu_read_reg                                       (void *cpu, int reg_type, int reg_index);
@@ -682,6 +711,11 @@ const char* advance_qemu                                    (void);
 
 conf_object_t* QEMU_get_mmu_state(int cpu_index);
 uint8_t QEMU_get_current_el(conf_object_t* cpu);
+
+
+void set_qemu_disas_context(void* obj);
+void* get_qemu_disas_context(void);
+
 /*---------------------------------------------------------------
  *-------------------------FLEXUS----------------------------
  *---------------------------------------------------------------*/
@@ -692,12 +726,13 @@ extern QEMU_CLEAR_EXCEPTION_PROC QEMU_clear_exception;
 extern QEMU_READ_REGISTER_PROC QEMU_read_register;
 
 extern QEMU_READ_PSTATE_PROC QEMU_read_pstate;
-extern QEMU_READ_EL_PROC QEMU_read_el;
+extern QEMU_READ_EXCEPTION_PROC QEMU_read_exception;
+extern QEMU_READ_SCTLR_PROC QEMU_read_sctlr;
 extern QEMU_READ_FPCR_PROC QEMU_read_fpcr;
 extern QEMU_READ_FPSR_PROC QEMU_read_fpsr;
-
-
-
+extern QEMU_READ_HCR_EL2_PROC QEMU_read_hcr_el2;
+extern QEMU_READ_DCZID_EL0 QEMU_read_DCZID_EL0;
+extern QEMU_READ_AARCH64 QEMU_read_AARCH64;
 
 extern QEMU_WRITE_REGISTER_PROC QEMU_write_register;
 extern QEMU_READ_PHYS_MEMORY_PROC QEMU_read_phys_memory;
@@ -743,33 +778,26 @@ extern QEMU_GET_CURRENT_EL QEMU_get_current_el;
 
 typedef struct QFLEX_API_Interface_Hooks
 {
-    CPU_READ_REGISTER_PROC cpu_read_register;
+//    CPU_READ_REGISTER_PROC cpu_read_register;
 
-
-    QEMU_READ_PSTATE_PROC cpu_read_pstate;
-    QEMU_READ_EL_PROC cpu_read_el;
-    QEMU_READ_FPCR_PROC cpu_read_fpcr;
-    QEMU_READ_FPSR_PROC cpu_read_fpsr;
-
-
-
-
-    CPU_WRITE_REGISTER_PROC cpu_write_register;
-    MMU_LOGICAL_TO_PHYSICAL_PROC mmu_logical_to_physical;
+//    CPU_WRITE_REGISTER_PROC cpu_write_register;
+//    MMU_LOGICAL_TO_PHYSICAL_PROC mmu_logical_to_physical;
     CPU_GET_PROGRAM_COUNTER_PROC cpu_get_program_counter;
     QEMU_CPU_GET_ADDRESS_SPACE_PROC qemu_cpu_get_address_space;
-    CPU_PROC_NUM_PROC cpu_proc_num;
+//    CPU_PROC_NUM_PROC cpu_proc_num;
     QEMU_GET_ETHERNET_PROC QEMU_get_ethernet;
     QEMU_GET_PHYS_MEMORY_PROC QEMU_get_phys_memory;
     QEMU_CLEAR_EXCEPTION_PROC QEMU_clear_exception;
     QEMU_READ_REGISTER_PROC QEMU_read_register;
-
+    QEMU_READ_DCZID_EL0 QEMU_read_DCZID_EL0;
+    QEMU_READ_AARCH64 QEMU_read_AARCH64;
 
     QEMU_READ_PSTATE_PROC QEMU_read_pstate;
-    QEMU_READ_EL_PROC QEMU_read_el;
     QEMU_READ_FPCR_PROC QEMU_read_fpcr;
     QEMU_READ_FPSR_PROC QEMU_read_fpsr;
-
+    QEMU_READ_SCTLR_PROC QEMU_read_sctlr;
+    QEMU_READ_EXCEPTION_PROC QEMU_read_exception;
+    QEMU_READ_HCR_EL2_PROC QEMU_read_hcr_el2;
 
     QEMU_WRITE_REGISTER_PROC QEMU_write_register;
     QEMU_READ_PHYS_MEMORY_PROC QEMU_read_phys_memory;

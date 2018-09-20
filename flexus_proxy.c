@@ -9,15 +9,15 @@ void QFLEX_API_get_Interface_Hooks (QFLEX_API_Interface_Hooks_t* hooks) {
   hooks->QEMU_get_ethernet= QEMU_get_ethernet;
   hooks->QEMU_clear_exception= QEMU_clear_exception;
   hooks->QEMU_read_register= QEMU_read_register;
+  hooks->QEMU_write_register= QEMU_write_register;
+
   hooks->QEMU_read_fpcr = QEMU_read_fpcr;
   hooks->QEMU_read_fpsr = QEMU_read_fpsr;
-
-  hooks->QEMU_read_el = QEMU_read_el;
+  hooks->QEMU_read_exception = QEMU_read_exception;
+  hooks->QEMU_read_sctlr = QEMU_read_sctlr;
   hooks->QEMU_read_pstate = QEMU_read_pstate;
+  hooks->QEMU_read_hcr_el2 = QEMU_read_hcr_el2;
 
-
-
-  hooks->QEMU_write_register= QEMU_write_register;
   hooks->QEMU_read_phys_memory= QEMU_read_phys_memory;
   hooks->QEMU_get_phys_mem= QEMU_get_phys_mem;
   hooks->QEMU_get_cpu_by_index= QEMU_get_cpu_by_index;
