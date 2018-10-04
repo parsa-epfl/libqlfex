@@ -10,13 +10,16 @@ void QFLEX_API_get_Interface_Hooks (QFLEX_API_Interface_Hooks_t* hooks) {
   hooks->QEMU_clear_exception= QEMU_clear_exception;
   hooks->QEMU_read_register= QEMU_read_register;
   hooks->QEMU_write_register= QEMU_write_register;
+  hooks->QEMU_read_sp_el = QEMU_read_sp_el;
 
   hooks->QEMU_read_fpcr = QEMU_read_fpcr;
   hooks->QEMU_read_fpsr = QEMU_read_fpsr;
   hooks->QEMU_read_exception = QEMU_read_exception;
+  hooks->QEMU_get_pending_interrupt = QEMU_get_pending_interrupt;
   hooks->QEMU_read_sctlr = QEMU_read_sctlr;
   hooks->QEMU_read_pstate = QEMU_read_pstate;
   hooks->QEMU_read_hcr_el2 = QEMU_read_hcr_el2;
+  hooks->QEMU_cpu_has_work = QEMU_cpu_has_work;
 
   hooks->QEMU_read_phys_memory= QEMU_read_phys_memory;
   hooks->QEMU_get_phys_mem= QEMU_get_phys_mem;
@@ -35,8 +38,8 @@ void QFLEX_API_get_Interface_Hooks (QFLEX_API_Interface_Hooks_t* hooks) {
   hooks->QEMU_increment_debug_stat= QEMU_increment_debug_stat;
   hooks->QEMU_logical_to_physical= QEMU_logical_to_physical;
   hooks->QEMU_break_simulation= QEMU_break_simulation;
-  hooks->QEMU_getSimulationTime=QEMU_getSimulationTime;
-  hooks->QEMU_setSimulationTime=QEMU_setSimulationTime;
+  hooks->QEMU_getSimulationTime = QEMU_getSimulationTime;
+  hooks->QEMU_setSimulationTime = QEMU_setSimulationTime;
   hooks->QEMU_mem_op_is_data= QEMU_mem_op_is_data;
   hooks->QEMU_mem_op_is_write= QEMU_mem_op_is_write;
   hooks->QEMU_mem_op_is_read= QEMU_mem_op_is_read;

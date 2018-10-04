@@ -28,8 +28,6 @@ static bool qemu_objects_initialized;
 extern uint64_t quantum_value;
 #endif
 extern int smp_cpus;
-extern int smp_cores;
-extern int smp_threads;
 extern int smp_sockets;
 
 static int flexus_is_simulating;
@@ -41,20 +39,20 @@ conf_object_t* QEMU_get_mmu_state(int cpu_index) {
     theRegObject->type = QEMU_MMUObject;
     theRegObject->object = (void*) malloc( sizeof(mmu_regs_t) );
     mmu_regs_t* mmuRegs = (mmu_regs_t*) theRegObject->object;
-    mmuRegs->SCTLR[EL1] = cpu_read_register(theCPU,EL1,MMU_SCTLR);
-    mmuRegs->SCTLR[EL2] = cpu_read_register(theCPU,EL2,MMU_SCTLR);
-    mmuRegs->SCTLR[EL3] = cpu_read_register(theCPU,EL3,MMU_SCTLR);
+    mmuRegs->SCTLR[EL1] = cpu_read_register(theCPU,EL1,kMMU_SCTLR);
+    mmuRegs->SCTLR[EL2] = cpu_read_register(theCPU,EL2,kMMU_SCTLR);
+    mmuRegs->SCTLR[EL3] = cpu_read_register(theCPU,EL3,kMMU_SCTLR);
     
-    mmuRegs->TCR[EL1] = cpu_read_register(theCPU,EL1,MMU_TCR);
-    mmuRegs->TCR[EL2] = cpu_read_register(theCPU,EL2,MMU_TCR);
-    mmuRegs->TCR[EL3] = cpu_read_register(theCPU,EL3,MMU_TCR);
+    mmuRegs->TCR[EL1] = cpu_read_register(theCPU,EL1,kMMU_TCR);
+    mmuRegs->TCR[EL2] = cpu_read_register(theCPU,EL2,kMMU_TCR);
+    mmuRegs->TCR[EL3] = cpu_read_register(theCPU,EL3,kMMU_TCR);
 
-    mmuRegs->TTBR0[EL1] = cpu_read_register(theCPU,EL1,MMU_TTBR0);
-    mmuRegs->TTBR1[EL1] = cpu_read_register(theCPU,EL1,MMU_TTBR1);
-    mmuRegs->TTBR0[EL2] = cpu_read_register(theCPU,EL2,MMU_TTBR0);
-    mmuRegs->TTBR1[EL2] = cpu_read_register(theCPU,EL2,MMU_TTBR1);
-    mmuRegs->TTBR0[EL3] = cpu_read_register(theCPU,EL3,MMU_TTBR0);
-    mmuRegs->ID_AA64MMFR0_EL1 = cpu_read_register(theCPU,0,MMU_ID_AA64MMFR0_EL1);
+    mmuRegs->TTBR0[EL1] = cpu_read_register(theCPU,EL1,kMMU_TTBR0);
+    mmuRegs->TTBR1[EL1] = cpu_read_register(theCPU,EL1,kMMU_TTBR1);
+    mmuRegs->TTBR0[EL2] = cpu_read_register(theCPU,EL2,kMMU_TTBR0);
+    mmuRegs->TTBR1[EL2] = cpu_read_register(theCPU,EL2,kMMU_TTBR1);
+    mmuRegs->TTBR0[EL3] = cpu_read_register(theCPU,EL3,kMMU_TTBR0);
+    mmuRegs->ID_AA64MMFR0_EL1 = cpu_read_register(theCPU,0,kMMU_ID_AA64MMFR0_EL1);
 
     return theRegObject;
 }
@@ -103,6 +101,11 @@ void QEMU_read_exception(conf_object_t *cpu, exception_t* exp) {
   cpu_read_exception(cpu->object, exp);
 }
 
+uint64_t QEMU_get_pending_interrupt(conf_object_t *cpu) {
+  assert(cpu->type == QEMU_CPUState);
+  return cpu_get_pending_interrupt(cpu->object);
+}
+
 uint32_t QEMU_read_DCZID_EL0(conf_object_t *cpu) {
   assert(cpu->type == QEMU_CPUState);
   return cpu_read_DCZID_EL0(cpu->object);
@@ -113,10 +116,19 @@ bool QEMU_read_AARCH64(conf_object_t *cpu) {
   return cpu_read_AARCH64(cpu->object);
 }
 
+uint64_t QEMU_read_sp_el(uint8_t id, conf_object_t *cpu){
+    assert(cpu->type == QEMU_CPUState);
+    return cpu_read_sp_el(id, cpu->object);
+}
 
-uint64_t* QEMU_read_sctlr(conf_object_t *cpu) {
+bool QEMU_cpu_has_work(conf_object_t *cpu){
+    assert(cpu->type == QEMU_CPUState);
+    return ! cpu_is_idle(cpu->object);
+}
+
+uint64_t QEMU_read_sctlr(uint8_t id, conf_object_t *cpu) {
   assert(cpu->type == QEMU_CPUState);
-  return cpu_read_sctlr(cpu->object);
+  return cpu_read_sctlr(id, cpu->object);
 }
 
 uint32_t QEMU_read_fpsr(conf_object_t *cpu) {
