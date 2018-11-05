@@ -715,14 +715,15 @@ physical_address_t mmu_logical_to_physical                  (void *cs, logical_a
 uint64_t cpu_get_program_counter                            (void *cs);
 void* qemu_cpu_get_address_space                            (void *cs);
 int cpu_proc_num                                            (void *cs);
-const char* advance_qemu                                    (void);
+const char* advance_qemu                                    (void* obj);
 
 conf_object_t* QEMU_get_mmu_state(int cpu_index);
 uint8_t QEMU_get_current_el(conf_object_t* cpu);
 
 
-void set_qemu_disas_context(void* obj);
-void* get_qemu_disas_context(void);
+void init_qemu_disas_context(uint8_t cpu_idx, void* obj);
+void update_qemu_disas_context(uint8_t cpu_idx, void* obj);
+void* get_qemu_disas_context(uint8_t cpu_idx);
 
 /*---------------------------------------------------------------
  *-------------------------FLEXUS----------------------------

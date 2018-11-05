@@ -156,18 +156,26 @@ uint8_t* QEMU_read_phys_memory(physical_address_t pa, int bytes)
   return buf;
 }
 
-void set_qemu_disas_context(void* obj){
+void init_qemu_disas_context(uint8_t cpu_idx, void* obj){
     if (qemu_disas_context == NULL)
-        qemu_disas_context = malloc(sizeof(conf_object_t));
+        qemu_disas_context = malloc(sizeof(conf_object_t) * QEMU_get_num_cores());
 
-    qemu_disas_context->object = obj;
-    qemu_disas_context->type = QEMU_DisasContext;
-    qemu_disas_context->name = strdup("DisasContext");
+    qemu_disas_context[cpu_idx].object = obj;
+    qemu_disas_context[cpu_idx].type = QEMU_DisasContext;
+    qemu_disas_context[cpu_idx].name = strdup("DisasContext");
+}
+
+void update_qemu_disas_context(uint8_t cpu_idx, void* obj){
+    assert(qemu_disas_context != NULL);
+    qemu_disas_context[cpu_idx].object = obj;
 }
 
 
-void* get_qemu_disas_context(void){
-    return qemu_disas_context->object;
+void* get_qemu_disas_context(uint8_t cpu_idx){
+    if (qemu_disas_context != NULL)
+    return qemu_disas_context[cpu_idx].object;
+
+    return NULL;
 }
 
 conf_object_t *QEMU_get_cpu_by_index(int index)
@@ -316,11 +324,13 @@ conf_object_t * QEMU_get_object_by_name(const char *name) {
 
 int QEMU_cpu_execute (conf_object_t *cpu) {
   
+   assert(cpu->type == QEMU_CPUState);
+
   int ret = 0;
   CPUState * cpu_state = cpu->object;
   pending_exception = cpu_state->exception_index;
   fprintf(stderr, "\e[1;35m BEFORE ADVANCE: %s:%d: \e[0m \n", __FILE__, __LINE__);
-  advance_qemu();
+  advance_qemu(cpu->object);
   fprintf(stderr, "\e[1;35m AFTER ADVANCE: %s:%d: \e[0m \n", __FILE__, __LINE__);
 
   //ret = cpu_state->exception_index;
