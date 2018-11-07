@@ -11,7 +11,6 @@ extern "C" {
 #include "include/exec/exec-all.h"
 #include "api.h"
 
-#include "../flexus/core/qemu/mmuRegisters.h"
 
 
 static int pending_exception = 0;
@@ -32,30 +31,19 @@ extern int smp_sockets;
 
 static int flexus_is_simulating;
 
+
+
 // Read MMU state (just gets a bunch of QEMU registers that are appropriately named)
-conf_object_t* QEMU_get_mmu_state(int cpu_index) {
-    conf_object_t* theCPU = QEMU_get_cpu_by_index(cpu_index);
-    conf_object_t* theRegObject = malloc(sizeof(conf_object_t));
-    theRegObject->type = QEMU_MMUObject;
-    theRegObject->object = (void*) malloc( sizeof(mmu_regs_t) );
-    mmu_regs_t* mmuRegs = (mmu_regs_t*) theRegObject->object;
-    mmuRegs->SCTLR[EL1] = cpu_read_register(theCPU,EL1,kMMU_SCTLR);
-    mmuRegs->SCTLR[EL2] = cpu_read_register(theCPU,EL2,kMMU_SCTLR);
-    mmuRegs->SCTLR[EL3] = cpu_read_register(theCPU,EL3,kMMU_SCTLR);
-    
-    mmuRegs->TCR[EL1] = cpu_read_register(theCPU,EL1,kMMU_TCR);
-    mmuRegs->TCR[EL2] = cpu_read_register(theCPU,EL2,kMMU_TCR);
-    mmuRegs->TCR[EL3] = cpu_read_register(theCPU,EL3,kMMU_TCR);
+//conf_object_t* QEMU_get_mmu_state(int cpu_index) {
+//    conf_object_t* theCPU = QEMU_get_cpu_by_index(cpu_index);
+//    conf_object_t* theRegObject = malloc(sizeof(conf_object_t));
+//    theRegObject->type = QEMU_MMUObject;
+//    theRegObject->object = (void*) malloc( sizeof(mmu_regs_t) );
+//    mmu_regs_t* mmuRegs = (mmu_regs_t*) theRegObject->object;
 
-    mmuRegs->TTBR0[EL1] = cpu_read_register(theCPU,EL1,kMMU_TTBR0);
-    mmuRegs->TTBR1[EL1] = cpu_read_register(theCPU,EL1,kMMU_TTBR1);
-    mmuRegs->TTBR0[EL2] = cpu_read_register(theCPU,EL2,kMMU_TTBR0);
-    mmuRegs->TTBR1[EL2] = cpu_read_register(theCPU,EL2,kMMU_TTBR1);
-    mmuRegs->TTBR0[EL3] = cpu_read_register(theCPU,EL3,kMMU_TTBR0);
-    mmuRegs->ID_AA64MMFR0_EL1 = cpu_read_register(theCPU,0,kMMU_ID_AA64MMFR0_EL1);
 
-    return theRegObject;
-}
+//    return theRegObject;
+//}
 
 const char* QEMU_dump_state(conf_object_t* cpu) {
     return qemu_dump_state(cpu->object);

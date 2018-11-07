@@ -717,7 +717,7 @@ void* qemu_cpu_get_address_space                            (void *cs);
 int cpu_proc_num                                            (void *cs);
 const char* advance_qemu                                    (void* obj);
 
-conf_object_t* QEMU_get_mmu_state(int cpu_index);
+//conf_object_t* QEMU_get_mmu_state(int cpu_index);
 uint8_t QEMU_get_current_el(conf_object_t* cpu);
 
 
@@ -782,7 +782,7 @@ extern QEMU_DISASSEMBLE_PROC QEMU_disassemble;
 extern QEMU_DUMP_STATE_PROC QEMU_dump_state;
 extern QEMU_INSERT_CALLBACK_PROC QEMU_insert_callback;
 extern QEMU_DELETE_CALLBACK_PROC QEMU_delete_callback;
-extern QEMU_GET_MMU_STATE_PROC QEMU_get_mmu_state;
+//extern QEMU_GET_MMU_STATE_PROC QEMU_get_mmu_state;
 extern QEMU_GET_CURRENT_EL_PROC_PROC QEMU_get_current_el;
 #endif
 
@@ -848,7 +848,7 @@ typedef struct QFLEX_API_Interface_Hooks
     QEMU_GET_INSTRUCTION_COUNT_PROC QEMU_get_instruction_count;
     QEMU_DISASSEMBLE_PROC QEMU_disassemble;
     QEMU_DUMP_STATE_PROC QEMU_dump_state;
-    QEMU_GET_MMU_STATE_PROC QEMU_get_mmu_state;
+//    QEMU_GET_MMU_STATE_PROC QEMU_get_mmu_state;
     QEMU_GET_CURRENT_EL_PROC_PROC QEMU_get_current_el;
 } QFLEX_API_Interface_Hooks_t;
 
