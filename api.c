@@ -50,7 +50,8 @@ const char* QEMU_dump_state(conf_object_t* cpu) {
 }
 
 const char* QEMU_disassemble(conf_object_t* cpu, uint64_t pc){
-    return disassemble(cpu->object, pc);
+    const char* d1 = disassemble(cpu->object, pc);
+    return d1;
 }
 
 void QEMU_write_phys_memory(conf_object_t *cpu, physical_address_t pa, unsigned long long value, int bytes){
@@ -136,10 +137,11 @@ conf_object_t * QEMU_get_phys_memory(conf_object_t *cpu){
     assert(false);
 }
 
-uint8_t* QEMU_read_phys_memory(physical_address_t pa, int bytes)
+
+
+void QEMU_read_phys_memory(uint8_t* buf, physical_address_t pa, int bytes)
 {
   assert(0 <= bytes && bytes <= 16);
-  uint8_t* buf = malloc(sizeof(uint8_t)*bytes);
   cpu_physical_memory_read(pa, buf, bytes);
   return buf;
 }

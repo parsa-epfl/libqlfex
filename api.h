@@ -525,7 +525,7 @@ typedef uint64_t            (*QEMU_READ_HCR_EL2_PROC)            (conf_object_t*
 //memory
 typedef void*               (*QEMU_CPU_GET_ADDRESS_SPACE_PROC)  (void* cs);
 typedef conf_object_t*      (*QEMU_GET_PHYS_MEMORY_PROC)        (conf_object_t* cpu);
-typedef uint8_t*            (*QEMU_READ_PHYS_MEMORY_PROC)       (physical_address_t pa, int bytes);
+typedef void            (*QEMU_READ_PHYS_MEMORY_PROC)           (uint8_t* buf, physical_address_t pa, int bytes);
 typedef conf_object_t *     (*QEMU_GET_PHYS_MEM_PROC)           (conf_object_t *cpu);
 typedef physical_address_t  (*QEMU_LOGICAL_TO_PHYSICAL_PROC)    (conf_object_t *cpu, data_or_instr_t fetch, logical_address_t va);
 typedef void                (*QEMU_WRITE_PHYS_MEMORY_PROC)      (conf_object_t *cpu, physical_address_t pa, unsigned long long value, int bytes);
@@ -639,7 +639,7 @@ uint32_t QEMU_read_DCZID_EL0                                (conf_object_t* cpu)
 bool QEMU_read_AARCH64                                      (conf_object_t* cpu);
 uint64_t QEMU_read_sp_el                                    (uint8_t id, conf_object_t *cpu);
 
-uint8_t* QEMU_read_phys_memory                              (physical_address_t pa, int bytes);
+void QEMU_read_phys_memory                                  (uint8_t* buf, physical_address_t pa, int bytes);
 void QEMU_write_phys_memory                                 (conf_object_t *cpu, physical_address_t pa, unsigned long long value, int bytes);
 conf_object_t *QEMU_get_phys_mem                            (conf_object_t *cpu);
 conf_object_t *QEMU_get_cpu_by_index                        (int index);
