@@ -45,8 +45,8 @@ static int flexus_is_simulating;
 //    return theRegObject;
 //}
 
-const char* QEMU_dump_state(conf_object_t* cpu) {
-    return qemu_dump_state(cpu->object);
+void QEMU_dump_state(conf_object_t* cpu, char** buf) {
+    qemu_dump_state(cpu->object, buf);
 }
 
 const char* QEMU_disassemble(conf_object_t* cpu, uint64_t pc){
@@ -143,7 +143,6 @@ void QEMU_read_phys_memory(uint8_t* buf, physical_address_t pa, int bytes)
 {
   assert(0 <= bytes && bytes <= 16);
   cpu_physical_memory_read(pa, buf, bytes);
-  return buf;
 }
 
 void init_qemu_disas_context(uint8_t cpu_idx, void* obj){

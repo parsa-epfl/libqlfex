@@ -572,7 +572,7 @@ typedef int                 (*QEMU_ADVANCE_PROC)                (void);
 typedef int                 (*QEMU_IS_IN_SIMULATION_PROC)       (void);
 typedef void                (*QEMU_TOGGLE_SIMULATION_PROC)      (int enable);
 typedef const char*         (*QEMU_DISASSEMBLE_PROC)            (conf_object_t* cpu, uint64_t pc);
-typedef const char*         (*QEMU_DUMP_STATE_PROC)             (conf_object_t* cpu);
+typedef void                (*QEMU_DUMP_STATE_PROC)             (conf_object_t* cpu, char** buf);
 typedef conf_object_t*      (*QEMU_GET_ETHERNET_PROC)           (void);
 
 //exp/irq
@@ -685,11 +685,11 @@ void QEMU_execute_callbacks                                 (int cpu_id, QEMU_ca
 void QEMU_initialize_counts                                 (void);
 void QEMU_deinitialize_counts                               (void);
 void QEMU_increment_instruction_count                       (int cpu_number, int isUser);
-const char* QEMU_dump_state                                 (conf_object_t* cpu);
+void QEMU_dump_state                                        (conf_object_t* cpu, char** buf);
 conf_object_t * QEMU_get_ethernet                           (void);
 bool QEMU_cpu_has_work                                      ( conf_object_t* obj);
 
-const char* qemu_dump_state                                 (void *obj);
+void qemu_dump_state                                        (void *obj, char** buf);
 int get_info                                                (void *cpu);
 const char* disassemble                                     (void* cpu, uint64_t pc);
 
@@ -713,6 +713,7 @@ void cpu_write_register                                     ( void *env_ptr, arm
 uint64_t cpu_read_reg                                       (void *cpu, int reg_type, int reg_index);
 physical_address_t mmu_logical_to_physical                  (void *cs, logical_address_t va);
 uint64_t cpu_get_program_counter                            (void *cs);
+//void cpu_set_program_counter                            (void* cs, uint64_t aVal);
 void* qemu_cpu_get_address_space                            (void *cs);
 int cpu_proc_num                                            (void *cs);
 const char* advance_qemu                                    (void* obj);
