@@ -313,14 +313,19 @@ conf_object_t * QEMU_get_object_by_name(const char *name) {
 
 int QEMU_cpu_execute (conf_object_t *cpu) {
   
+   static uint32_t count;
    assert(cpu->type == QEMU_CPUState);
 
   int ret = 0;
   CPUState * cpu_state = cpu->object;
   pending_exception = cpu_state->exception_index;
-  fprintf(stderr, "\e[1;35m BEFORE ADVANCE: %s:%d: \e[0m \n", __FILE__, __LINE__);
+  fprintf(stderr, "\e[1;35m%s:%d: BEFORE ADVANCE  \n", __FILE__, __LINE__);
+
+  fprintf(stderr, "\e[1;35m%s:%d: Executing %d \e[0m \n", __FILE__, __LINE__, count++);
+
   advance_qemu(cpu->object);
-  fprintf(stderr, "\e[1;35m AFTER ADVANCE: %s:%d: \e[0m \n", __FILE__, __LINE__);
+  simulationTime--;
+  fprintf(stderr, "\e[1;35m%s:%d: AFTER ADVANCE \e[0m \n", __FILE__, __LINE__);
 
   //ret = cpu_state->exception_index;
   //ret =  get_info(cpu_state);
