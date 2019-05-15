@@ -709,14 +709,14 @@ bool cpu_read_AARCH64                                       ( void *obj);
 bool cpu_is_idle                                            ( void *obj);
 uint64_t cpu_read_sp_el                                     ( uint8_t id, void *obj);
 
-void cpu_write_register                                     ( void *env_ptr, arm_register_t reg_type, int reg_index, uint64_t value );
+void cpu_write_register                                     (void *env_ptr, arm_register_t reg_type, int reg_index, uint64_t value );
 uint64_t cpu_read_reg                                       (void *cpu, int reg_type, int reg_index);
 physical_address_t mmu_logical_to_physical                  (void *cs, logical_address_t va);
 uint64_t cpu_get_program_counter                            (void *cs);
-//void cpu_set_program_counter                            (void* cs, uint64_t aVal);
+//void cpu_set_program_counter                              (void* cs, uint64_t aVal);
 void* qemu_cpu_get_address_space                            (void *cs);
 int cpu_proc_num                                            (void *cs);
-const char* advance_qemu                                    (void* obj);
+int advance_qemu                                            (void* obj);
 
 //conf_object_t* QEMU_get_mmu_state(int cpu_index);
 uint8_t QEMU_get_current_el(conf_object_t* cpu);
