@@ -830,8 +830,20 @@ void QEMU_execute_callbacks(
 void QEMU_cpu_set_quantum(const int * val)
 {
 #ifdef CONFIG_QUANTUM
+    /* Msutherl:
+     * - I believe this should be removed, b/c the
+     *   quantum is always set from QEMU cmd line.
+     * - Removed for now.
+     * - IF we want to keep it, use the interface in
+     *   qemu's cpus.c file to set:
+     *      quantum_state.quantum_value = *val
+     */
+    fprintf(stderr, "----- ERROR in: %s:%d, called QEMU_cpu_set_quantum after functionality removed.-----\n",__FILE__,__LINE__);
+    exit(-1);
+    /*
     if (*val > 0)
         quantum_value = *val;
+    */
 #endif
 }
 #ifdef __cplusplus
