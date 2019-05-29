@@ -35,7 +35,8 @@ typedef enum {
     QEMU_gfx_break_string,
     QEMU_cpu_mem_trans,
     QEMU_dma_mem_trans,
-    QEMU_callback_event_count
+    QEMU_callback_event_count,
+    QEMU_rmc_callback
 } QEMU_callback_event_t;
 
 
