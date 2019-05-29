@@ -55,7 +55,11 @@ const char* QEMU_disassemble(conf_object_t* cpu, uint64_t pc){
 }
 
 void QEMU_write_phys_memory(conf_object_t *cpu, physical_address_t pa, unsigned long long value, int bytes){
-    assert(false);
+    assert(0 <= bytes && bytes <= 16);
+    /* allocate raw buffer to pass to qemu */
+    uint8_t buf[sizeof(unsigned long long)];
+    memcpy(buf, &value, bytes);
+    cpu_physical_memory_write(pa, buf, bytes);
 }
 
 int QEMU_clear_exception(void){
