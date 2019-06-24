@@ -717,7 +717,7 @@ uint64_t cpu_get_program_counter                            (void *cs);
 //void cpu_set_program_counter                            (void* cs, uint64_t aVal);
 void* qemu_cpu_get_address_space                            (void *cs);
 int cpu_proc_num                                            (void *cs);
-const char* advance_qemu                                    (void* obj);
+int advance_qemu                                            (void* obj);
 
 //conf_object_t* QEMU_get_mmu_state(int cpu_index);
 uint8_t QEMU_get_current_el(conf_object_t* cpu);
