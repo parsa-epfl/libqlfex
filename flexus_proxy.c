@@ -17,6 +17,7 @@ void QFLEX_API_get_Interface_Hooks (QFLEX_API_Interface_Hooks_t* hooks) {
   hooks->QEMU_read_exception = QEMU_read_exception;
   hooks->QEMU_get_pending_interrupt = QEMU_get_pending_interrupt;
   hooks->QEMU_read_sctlr = QEMU_read_sctlr;
+  hooks->QEMU_read_tpidr = QEMU_read_tpidr;
   hooks->QEMU_read_pstate = QEMU_read_pstate;
   hooks->QEMU_read_hcr_el2 = QEMU_read_hcr_el2;
   hooks->QEMU_cpu_has_work = QEMU_cpu_has_work;

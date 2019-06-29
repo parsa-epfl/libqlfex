@@ -124,6 +124,11 @@ uint64_t QEMU_read_sctlr(uint8_t id, conf_object_t *cpu) {
   return cpu_read_sctlr(id, cpu->object);
 }
 
+uint64_t QEMU_read_tpidr(uint8_t id, conf_object_t *cpu) {
+  assert(cpu->type == QEMU_CPUState);
+  return cpu_read_tpidr(id, cpu->object);
+}
+
 uint32_t QEMU_read_fpsr(conf_object_t *cpu) {
   assert(cpu->type == QEMU_CPUState);
   return cpu_read_fpsr(cpu->object);

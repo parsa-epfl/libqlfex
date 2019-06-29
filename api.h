@@ -519,6 +519,7 @@ typedef bool                (*QEMU_READ_AARCH64_PROC)            (conf_object_t 
 typedef uint64_t            (*QEMU_READ_SP_EL_PROC)              (uint8_t Id, conf_object_t *cpu);
 
 typedef uint64_t            (*QEMU_READ_SCTLR_PROC)              (uint8_t id, conf_object_t *cpu);
+typedef uint64_t            (*QEMU_READ_TPIDR_PROC)              (uint8_t id, conf_object_t *cpu);
 typedef void                (*QEMU_READ_EXCEPTION_PROC)          (conf_object_t *cpu, exception_t* exp);
 typedef uint64_t            (*QEMU_GET_PENDING_INTERRUPT_PROC)   (conf_object_t *cpu);
 typedef uint64_t            (*QEMU_READ_HCR_EL2_PROC)            (conf_object_t* cpu);
@@ -629,6 +630,7 @@ int QEMU_clear_exception                                    (void);
 void QEMU_write_register                                    (conf_object_t *cpu, arm_register_t reg_type, int reg_index, uint64_t value);
 uint64_t QEMU_read_register                                 (conf_object_t *cpu, arm_register_t reg_type, int reg_index);
 uint64_t QEMU_read_sctlr                                    (uint8_t id, conf_object_t *cpu);
+uint64_t QEMU_read_tpidr                                    (uint8_t id, conf_object_t *cpu);
 void QEMU_read_exception                                    (conf_object_t *cpu, exception_t* exp);
 uint64_t QEMU_get_pending_interrupt                         (conf_object_t *cpu);
 
@@ -703,6 +705,7 @@ uint64_t cpu_read_hcr_el2                                   ( void* obj);
 
 
 uint64_t cpu_read_sctlr                                    ( uint8_t id, void *obj);
+uint64_t cpu_read_tpidr                                    ( uint8_t id, void *obj);
 uint32_t cpu_read_fpcr                                      ( void *obj);
 uint32_t cpu_read_fpsr                                      ( void *obj);
 uint32_t cpu_read_DCZID_EL0                                 ( void *obj);
@@ -739,6 +742,7 @@ extern QEMU_READ_PSTATE_PROC QEMU_read_pstate;
 extern QEMU_READ_EXCEPTION_PROC QEMU_read_exception;
 extern QEMU_GET_PENDING_INTERRUPT_PROC QEMU_get_pending_interrupt;
 extern QEMU_READ_SCTLR_PROC QEMU_read_sctlr;
+extern QEMU_READ_TPIDR_PROC QEMU_read_tpidr;
 extern QEMU_READ_FPCR_PROC QEMU_read_fpcr;
 extern QEMU_READ_FPSR_PROC QEMU_read_fpsr;
 extern QEMU_READ_HCR_EL2_PROC QEMU_read_hcr_el2;
@@ -809,6 +813,7 @@ typedef struct QFLEX_API_Interface_Hooks
     QEMU_READ_FPCR_PROC QEMU_read_fpcr;
     QEMU_READ_FPSR_PROC QEMU_read_fpsr;
     QEMU_READ_SCTLR_PROC QEMU_read_sctlr;
+    QEMU_READ_TPIDR_PROC QEMU_read_tpidr;
     QEMU_READ_EXCEPTION_PROC QEMU_read_exception;
     QEMU_GET_PENDING_INTERRUPT_PROC QEMU_get_pending_interrupt;
     QEMU_READ_HCR_EL2_PROC QEMU_read_hcr_el2;
