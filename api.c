@@ -328,13 +328,8 @@ int QEMU_cpu_execute (conf_object_t *cpu) {
   int ret = 0;
   CPUState * cpu_state = cpu->object;
   pending_exception = cpu_state->exception_index;
-  fprintf(stderr, "\e[1;35m%s:%d: BEFORE ADVANCE  \n", __FILE__, __LINE__);
-
-  fprintf(stderr, "\e[1;35m%s:%d: Executing %d \e[0m \n", __FILE__, __LINE__, count++);
-
   advance_qemu(cpu->object);
   simulationTime--;
-  fprintf(stderr, "\e[1;35m%s:%d: AFTER ADVANCE \e[0m \n", __FILE__, __LINE__);
 
   //ret = cpu_state->exception_index;
   //ret =  get_info(cpu_state);
