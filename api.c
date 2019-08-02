@@ -322,7 +322,6 @@ conf_object_t * QEMU_get_object_by_name(const char *name) {
 
 int QEMU_cpu_execute (conf_object_t *cpu) {
   
-   static uint32_t count;
    assert(cpu->type == QEMU_CPUState);
 
   int ret = 0;
