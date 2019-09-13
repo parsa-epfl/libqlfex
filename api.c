@@ -49,9 +49,8 @@ void QEMU_dump_state(conf_object_t* cpu, char** buf) {
     qemu_dump_state(cpu->object, buf);
 }
 
-const char* QEMU_disassemble(conf_object_t* cpu, uint64_t pc){
-    const char* d1 = disassemble(cpu->object, pc);
-    return d1;
+char* QEMU_disassemble(conf_object_t* cpu, uint64_t pc){
+    return disassemble(cpu->object, pc);
 }
 
 void QEMU_write_phys_memory(conf_object_t *cpu, physical_address_t pa, unsigned long long value, int bytes){

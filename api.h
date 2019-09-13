@@ -573,7 +573,7 @@ typedef uint64_t            (*QEMU_GET_SIMULATION_TIME_PROC)    (void);
 typedef int                 (*QEMU_ADVANCE_PROC)                (void);
 typedef int                 (*QEMU_IS_IN_SIMULATION_PROC)       (void);
 typedef void                (*QEMU_TOGGLE_SIMULATION_PROC)      (int enable);
-typedef const char*         (*QEMU_DISASSEMBLE_PROC)            (conf_object_t* cpu, uint64_t pc);
+typedef char*               (*QEMU_DISASSEMBLE_PROC)            (conf_object_t* cpu, uint64_t pc);
 typedef void                (*QEMU_DUMP_STATE_PROC)             (conf_object_t* cpu, char** buf);
 typedef conf_object_t*      (*QEMU_GET_ETHERNET_PROC)           (void);
 
@@ -624,7 +624,7 @@ typedef void (*cb_func_nocs_t2)(void *, void *, conf_object_t *, char *);
  *-------------------------FUNCTIONS----------------------------
  *---------------------------------------------------------------*/
 
-const char* QEMU_disassemble                                (conf_object_t* cpu, uint64_t pc);
+char* QEMU_disassemble                                      (conf_object_t* cpu, uint64_t pc);
 conf_object_t *QEMU_get_phys_memory                         (conf_object_t *cpu);
 int QEMU_clear_exception                                    (void);
 void QEMU_write_register                                    (conf_object_t *cpu, arm_register_t reg_type, int reg_index, uint64_t value);
@@ -694,7 +694,7 @@ bool QEMU_cpu_has_work                                      ( conf_object_t* obj
 
 void qemu_dump_state                                        (void *obj, char** buf);
 int get_info                                                (void *cpu);
-const char* disassemble                                     (void* cpu, uint64_t pc);
+char* disassemble                                           (void* cpu, uint64_t pc);
 
 uint64_t cpu_read_register                                  ( void *env_ptr, arm_register_t reg_type, int reg_index);
 uint32_t cpu_read_pstate                                    ( void *obj);
