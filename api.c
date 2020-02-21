@@ -14,7 +14,7 @@ extern "C" {
 
 
 static int pending_exception = 0;
-static uint64_t simulationTime;
+static int64_t simulationTime;
 static bool timing;
 static int debugStats[ALL_DEBUG_TYPE] = {0};
 static QEMU_callback_table_t * QEMU_all_callbacks_tables = NULL;
@@ -67,10 +67,9 @@ int QEMU_clear_exception(void){
 
 void QEMU_write_register(conf_object_t *cpu, arm_register_t reg_type, int reg_index, uint64_t value)
 {
-  assert(false);
   assert(cpu->type == QEMU_CPUState);
   cpu_write_register( cpu->object, reg_type, reg_index, value );
-  cpu_read_register(cpu->object, reg_type, reg_index);
+  assert(cpu_read_register(cpu->object, reg_type, reg_index) == value);
 }
 
 uint64_t QEMU_read_register(conf_object_t *cpu, arm_register_t reg_type, int reg_index) {
@@ -453,7 +452,7 @@ void QEMU_deinitialize_counts(void) {
   free(QEMU_instruction_counts_OS);
 }
 
-uint64_t QEMU_getSimulationTime(void)
+int64_t QEMU_getSimulationTime(void)
 {
     return simulationTime;
 }
