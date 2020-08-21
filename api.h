@@ -218,8 +218,10 @@ typedef enum {
   QEMU_Conditional_Branch = 1,
   QEMU_Unconditional_Branch = 2,
   QEMU_Call_Branch = 3,
-  QEMU_Return_Branch = 4,
-  QEMU_Last_Branch_Type = 5,
+  QEMU_IndirectReg_Branch = 4,
+  QEMU_IndirectCall_Branch = 5,
+  QEMU_Return_Branch = 6,
+  QEMU_Last_Branch_Type = 7,
   QEMU_BRANCH_TYPE_COUNT
 } branch_type_t;
 
